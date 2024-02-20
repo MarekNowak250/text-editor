@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.Collections.Generic;
+using System;
+using System.Windows;
 using System.Windows.Input;
 
 namespace TextEditor
@@ -8,17 +10,17 @@ namespace TextEditor
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Drawer _drawer;
         private Document _document;
-
 
         public MainWindow()
         {
             InitializeComponent();
+        }
 
-            _drawer = new(new CharFactory(new System.Drawing.Font("Helvetica", 12F)), Main);
-            _document = new Document();
-            _drawer.Draw(_document.GetChars);
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            _document = new Document(Main);
+            _document.MoveCursor(Direction.Up);
         }
 
         private void Window_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -29,7 +31,6 @@ namespace TextEditor
                     return;
 
                 _document.InsertChar(c);
-                _drawer.Draw(_document.GetChars);
             }
         }
 
@@ -59,8 +60,6 @@ namespace TextEditor
                 default:
                     return;
             }
-
-            _drawer.Draw(_document.GetChars);
         }
     }
 }

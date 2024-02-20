@@ -1,50 +1,65 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows.Controls;
 
 namespace TextEditor
 {
     internal class Document
     {
-        private Dictionary<int, List<DocumentChar>> _rowChars;
+        private IList<List<DocumentChar>> _rowChars;
         private Cursor _cursor;
+        private Renderer _renderer;
 
-        public Document(Dictionary<int, List<DocumentChar>> rowChars = null)
+        public Document(Canvas canvas, IList<List<DocumentChar>> rowChars = null)
         {
-            _rowChars = rowChars ?? new Dictionary<int, List<DocumentChar>>
+            _rowChars = rowChars ?? new List<List<DocumentChar>>
             {
-                { 0, new List<DocumentChar>() }
+                new List<DocumentChar>()
             };
             _cursor = new('|', 0, 0);
             _rowChars[0].Add(_cursor);
+            var factory = new CharFactory(new System.Drawing.Font("Helvetica", 12F));
+            _renderer = new(factory, _cursor, canvas, _rowChars);
+
+            var text = File.ReadAllLines("C:\\Users\\Marek.Nowak\\Desktop\\log.txt");
+            for (int i = 0; i < text.Length; i++)
+            {
+                var line = new List<DocumentChar>();
+                foreach (var c in text[i])
+                {
+                    line.Add(new DocumentChar(c, i, line.Count));
+                }
+                _rowChars.Add(line);
+            }
         }
 
-        public ReadOnlyDictionary<int, List<DocumentChar>> GetChars => _rowChars.AsReadOnly();
+        public IList<List<DocumentChar>> GetChars => _rowChars.AsReadOnly();
 
         public void InsertChar(char character)
         {
             var row = _cursor.Row;
             var column = _cursor.Column;
             _rowChars[row].Insert(column, new DocumentChar(character, row, column));
-            _cursor.MoveRight(_rowChars);
+            _renderer.Rerender(Direction.Right);
         }
 
         public void AddLine()
         {
-            _rowChars.Add(_rowChars.Count, new());
-            _cursor.MoveCursor(Direction.Down, _rowChars);
+            _rowChars.Add(new());
+            _renderer.Rerender(Direction.Down);
         }
 
         public void DeleteChar()
         {
             if (_cursor.Column == 0)
                 return;
-            _cursor.MoveCursor(Direction.Left, _rowChars);
-            _rowChars[_cursor.Row].RemoveAt(_cursor.Column + 1);
+            _rowChars[_cursor.Row].RemoveAt(_cursor.Column);
+            _renderer.Rerender(Direction.Left);
         }
 
         public void MoveCursor(Direction direction)
         {
-            _cursor.MoveCursor(direction, _rowChars);
+            _renderer.Rerender(direction);
         }
     }
 }
