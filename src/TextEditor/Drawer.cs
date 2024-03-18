@@ -47,17 +47,22 @@ namespace TextEditor
             int startRow = mover.StartRow;
             int startCol = mover.StartCol;
             int endRow = startRow + maxPerRow;
+            endRow = endRow <= chars.Count() ? endRow : chars.Count();
             int y = _padding;
 
-            foreach (var row in chars.Skip(startRow).Take(maxPerRow))
+            for(int i =startRow; i < endRow; i++)
             {
                 double x = _padding;
-                var charsToRender = row.Skip(startCol).Take(maxPerColumn).ToList();
+                var columnCount = maxPerColumn <= _chars[i].Count() ? maxPerColumn : _chars[i].Count();
+                var charsToRender = _chars[i].Skip(startCol).Take(columnCount).ToList();
 
                 BitmapSource combinedLetters = null;
-                foreach (var character in charsToRender)
+                for(int j=0; j < charsToRender.Count; j++)
                 {
-                    BitmapImage? newCharRender = _charFactory.GetCharRender(character.Character);
+
+                    BitmapImage? newCharRender = _charFactory
+                        .GetCharRender(charsToRender[j].Character);
+
                     if (combinedLetters is null)
                     {
                         combinedLetters = newCharRender;
@@ -65,6 +70,12 @@ namespace TextEditor
                     else
                     {
                         combinedLetters = StitchBitmaps(combinedLetters, newCharRender);
+                    }
+
+                    if (_cursor.DisplayColumn == j && _cursor.DisplayRow == i)
+                    {
+                        combinedLetters = StitchBitmaps(combinedLetters, _charFactory
+                            .GetCharRender(_cursor.Character));
                     }
                 }
                 _canvas.Children.Add(new Image()

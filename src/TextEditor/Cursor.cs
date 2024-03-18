@@ -2,7 +2,7 @@
 
 namespace TextEditor
 {
-    internal class Cursor : DocumentChar
+    public class Cursor : DocumentChar
     {
         public int DisplayColumn { get; set; }
         public int DisplayRow { get; set; }

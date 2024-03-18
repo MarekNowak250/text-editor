@@ -1,6 +1,6 @@
 ﻿namespace TextEditor
 {
-    internal class DocumentChar
+    public class DocumentChar
     {
         public readonly char Character;
         public int Row { get; protected set; }

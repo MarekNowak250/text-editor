@@ -27,55 +27,62 @@ namespace TextEditor
             _maxPerColumn = maxPerColumn;
             _maxPerRow = maxPerRow;
 
+
+            var oldCol = _cursor.Column;
+            var oldRow = _cursor.Row;
             _moveInMemory.MoveCursor(direction);
             switch (direction)
             {
                 case Direction.Right:
-                    MoveRight();
+                    MoveRight(oldRow != _cursor.Row);
                     break;
                 case Direction.Left:
-                    MoveLeft();
+                    MoveLeft(oldRow != _cursor.Row);
                     break;
                 case Direction.Up:
                     MoveUp();
                     break;
                 case Direction.Down:
-                    MoveDown();
+                    MoveDown(oldRow != _cursor.Row);
                     break;
             }
         }
 
-        public void MoveRight()
+        public void MoveRight(bool movedVertically)
         {
-            if (_maxPerColumn - 1 > _cursor.DisplayColumn +1 && 
+            if (_maxPerColumn - 1 > _cursor.DisplayColumn + 1 &&
                 StartCol + _cursor.DisplayColumn < _chars[_cursor.DisplayRow].Count - 1)
                 _cursor.DisplayColumn++;
             else
             {
-                if(StartCol + _cursor.DisplayColumn +1 < _chars[_cursor.DisplayRow].Count - 1)
+                if (StartCol + _cursor.DisplayColumn < _chars[_cursor.DisplayRow].Count - 1)
                     StartCol++;
-                else
-                {
-                    MoveDown();
-                }
+                else 
+                    MoveDown(movedVertically);
             }
         }
 
-        public void MoveLeft()
+        private void MoveLeft(bool movedVertically)
         {
-            if (_cursor.DisplayColumn > 0)
-                _cursor.DisplayColumn--;
-            else if (_cursor.DisplayRow > 0)
+            if (movedVertically)
             {
-                _cursor.DisplayRow--;
-                _cursor.DisplayColumn = _cursor.Column;
-                StartCol = _cursor.Column - _maxPerColumn;
+                if (_cursor.DisplayRow > 0)
+                    _cursor.DisplayRow--;
+
+                _cursor.DisplayColumn = _chars[_cursor.Row].Count -1;
+                StartCol = _cursor.DisplayColumn - _maxPerColumn;
+                StartCol = StartCol < 0 ? 0 : StartCol;
             }
+            else if (_cursor.DisplayColumn > 0)
+                _cursor.DisplayColumn--;
         }
 
-        public void MoveDown()
+        private void MoveDown(bool movedVertically)
         {
-            if (_maxPerRow - 2 > _cursor.DisplayRow)
+            if (!movedVertically)
+                return;
+
+            if (_maxPerRow - 1 > _cursor.DisplayRow)
             {
                 _cursor.DisplayRow++;
                 _cursor.DisplayColumn = _cursor.Column;
@@ -91,7 +98,7 @@ namespace TextEditor
             }
         }
 
-        public void MoveUp()
+        private void MoveUp()
         {
             if (_cursor.DisplayRow > 0)
             {
@@ -102,7 +109,8 @@ namespace TextEditor
             }
             else
             {
-                StartRow -= 1;
+                if (StartRow > 0)
+                    StartRow -= 1;
             }
         }
     }

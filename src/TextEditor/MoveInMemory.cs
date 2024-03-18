@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace TextEditor
 {
-    internal class MoveInMemory
+    public class MoveInMemory
     {
         private readonly Cursor _cursor;
         private readonly IList<List<DocumentChar>> chars;
@@ -16,8 +16,6 @@ namespace TextEditor
 
         public void MoveCursor(Direction direction)
         {
-            int oldRow = _cursor.Row;
-            int oldColumn = _cursor.Column;
             switch (direction)
             {
                 case Direction.Right:
@@ -33,49 +31,49 @@ namespace TextEditor
                     MoveDown(chars);
                     break;
             }
-            chars[oldRow].RemoveAt(oldColumn);
-            chars[_cursor.Row].Insert(_cursor.Column, _cursor);
         }
 
-        public void MoveRight(IList<List<DocumentChar>> chars)
+        private void MoveRight(IList<List<DocumentChar>> chars)
         {
             if (chars[_cursor.Row].Count() - 1 > _cursor.Column)
-                _cursor.SetColumn(_cursor.Column+1);
+                _cursor.SetColumn(_cursor.Column + 1);
             else if (chars.Count() - 1 > _cursor.Row)
             {
-                _cursor.SetColumn(0);
+                var nRow = chars[_cursor.Row + 1];
+                var nCol = _cursor.Column > nRow.Count() - 1 ? nRow.Count() - 1 : _cursor.Column;
+                _cursor.SetColumn(nCol);
                 _cursor.SetRow(_cursor.Row + 1);
             }
         }
 
-        public void MoveLeft(IList<List<DocumentChar>> chars)
+        private void MoveLeft(IList<List<DocumentChar>> chars)
         {
             if (_cursor.Column > 0)
                 _cursor.SetColumn(_cursor.Column - 1);
             else if (_cursor.Row > 0)
             {
                 _cursor.SetRow(_cursor.Row - 1);
-                _cursor.SetColumn(chars[_cursor.Row].Count()-1);
+                _cursor.SetColumn(chars[_cursor.Row].Count() - 1);
             }
         }
 
-        public void MoveDown(IList<List<DocumentChar>> chars)
+        private void MoveDown(IList<List<DocumentChar>> chars)
         {
             if (chars.Count() - 1 > _cursor.Row)
             {
                 _cursor.SetRow(_cursor.Row + 1);
                 if (chars[_cursor.Row].Count() - 1 < _cursor.Column)
-                    _cursor.SetColumn(chars[_cursor.Row].Count());
+                    _cursor.SetColumn(chars[_cursor.Row].Count() - 1);
             }
         }
 
-        public void MoveUp(IList<List<DocumentChar>> chars)
+        private void MoveUp(IList<List<DocumentChar>> chars)
         {
             if (_cursor.Row > 0)
             {
-                _cursor.SetRow(_cursor.Row-1);
+                _cursor.SetRow(_cursor.Row - 1);
                 if (chars[_cursor.Row].Count() - 1 < _cursor.Column)
-                    _cursor.SetColumn(chars[_cursor.Row].Count());
+                    _cursor.SetColumn(chars[_cursor.Row].Count() - 1);
             }
         }
     }
