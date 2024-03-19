@@ -4,8 +4,8 @@ namespace TextEditor
 {
     public class Cursor : DocumentChar
     {
-        public int DisplayColumn { get; set; }
-        public int DisplayRow { get; set; }
+        //public int DisplayColumn { get; set; }
+        //public int DisplayRow { get; set; }
 
         public void SetColumn(int newCol)
         {
@@ -19,8 +19,8 @@ namespace TextEditor
 
         public Cursor(char character, int row, int column) : base(character, row, column)
         {
-            DisplayColumn = 0;
-            DisplayRow = 0;
+            //DisplayColumn = 0;
+            //DisplayRow = 0;
         }
     }
 }

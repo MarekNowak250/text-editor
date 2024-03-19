@@ -32,29 +32,39 @@ namespace TextEditor
 
         public void Rerender(Direction direction)
         {
-            int maxPerColumn = (int)Math.Floor((_canvas.ActualWidth - _padding) / _spaceBetween);
-            int maxPerRow = (int)Math.Floor((_canvas.ActualHeight - _padding) / _spaceBetween);
+            int maxColumnCount = (int)Math.Floor((_canvas.ActualWidth - _padding) / _spaceBetween);
+            int maxRowCount = (int)Math.Floor((_canvas.ActualHeight - _padding) / _spaceBetween);
 
-            mover.Move(direction, maxPerRow, maxPerColumn);
-            Draw(_chars.AsReadOnly(), maxPerColumn, maxPerRow);
+            mover.Move(direction, maxRowCount, maxColumnCount);
+            Draw(_chars.AsReadOnly(), maxColumnCount, maxRowCount);
         }
 
         public void Draw(ReadOnlyCollection<List<DocumentChar>> chars, 
-            int maxPerColumn, int maxPerRow)
+            int maxColumnCount, int maxRowCount)
         {
             _canvas.Children.Clear();
 
             int startRow = mover.StartRow;
             int startCol = mover.StartCol;
-            int endRow = startRow + maxPerRow;
+            int endRow = startRow + maxRowCount;
             endRow = endRow <= chars.Count() ? endRow : chars.Count();
             int y = _padding;
 
             for(int i =startRow; i < endRow; i++)
             {
                 double x = _padding;
-                var columnCount = maxPerColumn <= _chars[i].Count() ? maxPerColumn : _chars[i].Count();
-                var charsToRender = _chars[i].Skip(startCol).Take(columnCount).ToList();
+                var columnCount = maxColumnCount <= _chars[i].Count() ? maxColumnCount : _chars[i].Count();
+                var charsToRender = _chars[i].Skip(startCol).Take(columnCount+2).ToList();
+
+                if(charsToRender.Count == 0 && _cursor.Row == i) 
+                {
+                    _canvas.Children.Add(new Image()
+                    {
+                        Source = _charFactory.GetCharRender(_cursor.Character),
+                        Margin = new Thickness(x, y, 0, 0),
+                    });
+                    continue;
+                }
 
                 BitmapSource combinedLetters = null;
                 for(int j=0; j < charsToRender.Count; j++)
@@ -72,7 +82,7 @@ namespace TextEditor
                         combinedLetters = StitchBitmaps(combinedLetters, newCharRender);
                     }
 
-                    if (_cursor.DisplayColumn == j && _cursor.DisplayRow == i)
+                    if (_cursor.Column == (startCol + j) && _cursor.Row == i)
                     {
                         combinedLetters = StitchBitmaps(combinedLetters, _charFactory
                             .GetCharRender(_cursor.Character));

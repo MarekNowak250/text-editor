@@ -63,7 +63,11 @@ namespace TextEditor
             {
                 _cursor.SetRow(_cursor.Row + 1);
                 if (chars[_cursor.Row].Count() - 1 < _cursor.Column)
-                    _cursor.SetColumn(chars[_cursor.Row].Count() - 1);
+                {
+                    var newCol = chars[_cursor.Row].Count() - 1 >= 0
+                        ? chars[_cursor.Row].Count() - 1 : 0;
+                    _cursor.SetColumn(newCol);
+                }
             }
         }
 
@@ -73,7 +77,12 @@ namespace TextEditor
             {
                 _cursor.SetRow(_cursor.Row - 1);
                 if (chars[_cursor.Row].Count() - 1 < _cursor.Column)
-                    _cursor.SetColumn(chars[_cursor.Row].Count() - 1);
+                {
+                    var newCol = chars[_cursor.Row].Count() - 1 >= 0 
+                        ? chars[_cursor.Row].Count() - 1 : 0;
+                    _cursor.SetColumn(newCol);
+                }
+
             }
         }
     }
