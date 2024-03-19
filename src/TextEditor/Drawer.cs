@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Common;
+using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -19,24 +20,31 @@ namespace TextEditor
         private readonly Cursor _cursor;
         private readonly Canvas _canvas;
         private readonly IList<List<DocumentChar>> _chars;
-        MoveOnDisplay mover;
+        private readonly MoveOnDisplay _moveOnDisplay;
 
-        public Renderer(CharFactory charFactory, Cursor cursor, Canvas canvas, IList<List<DocumentChar>> chars)
+        public Renderer(CharFactory charFactory, Cursor cursor, Canvas canvas,
+            IList<List<DocumentChar>> chars, MoveOnDisplay moveOnDisplay)
         {
             _charFactory = charFactory;
             _cursor = cursor;
             _canvas = canvas;
             _chars = chars;
-            mover = new MoveOnDisplay(_cursor, chars);
+            _moveOnDisplay = moveOnDisplay;
         }
 
-        public void Rerender(Direction direction)
+        public void Rerender()
         {
-            int maxColumnCount = (int)Math.Floor((_canvas.ActualWidth - _padding) / _spaceBetween);
-            int maxRowCount = (int)Math.Floor((_canvas.ActualHeight - _padding) / _spaceBetween);
+            var maxCount = GetMaxRowColCount(_canvas);
 
-            mover.Move(direction, maxRowCount, maxColumnCount);
-            Draw(_chars.AsReadOnly(), maxColumnCount, maxRowCount);
+            Draw(_chars.AsReadOnly(), maxCount.maxColumnCount, maxCount.maxRowCount);
+        }
+
+        public (int maxRowCount, int maxColumnCount) GetMaxRowColCount(Canvas canvas)
+        {
+            int maxColumnCount = (int)Math.Floor((canvas.ActualWidth - _padding) / _spaceBetween);
+            int maxRowCount = (int)Math.Floor((canvas.ActualHeight - _padding) / _spaceBetween);
+
+            return (maxRowCount, maxColumnCount);
         }
 
         public void Draw(ReadOnlyCollection<List<DocumentChar>> chars, 
@@ -44,8 +52,8 @@ namespace TextEditor
         {
             _canvas.Children.Clear();
 
-            int startRow = mover.StartRow;
-            int startCol = mover.StartCol;
+            int startRow = _moveOnDisplay.StartRow;
+            int startCol = _moveOnDisplay.StartCol;
             int endRow = startRow + maxRowCount;
             endRow = endRow <= chars.Count() ? endRow : chars.Count();
             int y = _padding;
@@ -66,7 +74,7 @@ namespace TextEditor
                     continue;
                 }
 
-                BitmapSource combinedLetters = null;
+                BitmapSource combinedLetters = null!;
                 for(int j=0; j < charsToRender.Count; j++)
                 {
 

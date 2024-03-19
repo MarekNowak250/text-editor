@@ -39,9 +39,7 @@ namespace TextEditor
                 _cursor.SetColumn(_cursor.Column + 1);
             else if (chars.Count() - 1 > _cursor.Row)
             {
-                var nRow = chars[_cursor.Row + 1];
-                var nCol = _cursor.Column > nRow.Count() - 1 ? nRow.Count() - 1 : _cursor.Column;
-                _cursor.SetColumn(nCol);
+                _cursor.SetColumn(0);
                 _cursor.SetRow(_cursor.Row + 1);
             }
         }

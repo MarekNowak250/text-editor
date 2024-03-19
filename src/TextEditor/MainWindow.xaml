@@ -9,7 +9,7 @@
         Height="450" Width="800" 
         PreviewTextInput="Window_PreviewTextInput" 
         PreviewKeyDown="Window_PreviewKeyDown">
-    <Canvas x:Name="Main">
+    <Canvas x:Name="Main" Background="AliceBlue">
 
     </Canvas>
 </Window>

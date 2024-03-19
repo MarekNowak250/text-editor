@@ -14,6 +14,8 @@ namespace TextEditor
         public int StartRow = 0;
         public int StartCol = 0;
 
+        private int peekNum = 2;
+
         public MoveOnDisplay(Cursor cursor, IList<List<DocumentChar>> chars)
         {
             _cursor = cursor;
@@ -33,74 +35,56 @@ namespace TextEditor
             _moveInMemory.MoveCursor(direction);
             bool movedVertically = oldRow != _cursor.Row;
             bool movedHorizontally = oldCol != _cursor.Column;
-            switch (direction)
-            {
-                case Direction.Right:
-                case Direction.Left:
-                    MoveDisplayWindowIfNecessary(movedVertically, movedHorizontally); 
-                    break;
-                case Direction.Up:
-                    MoveUp();
-                    break;
-                case Direction.Down:
-                    MoveDown(oldRow != _cursor.Row);
-                    break;
-            }
+
+            MoveDisplayWindowIfNecessary(movedVertically, movedHorizontally);
+        }
+
+        public void Move(int maxPerRow, int maxPerColumn, 
+            bool movedVertically, bool movedHorizontally)
+        {
+            _maxPerColumn = maxPerColumn;
+            _maxPerRow = maxPerRow;
+
+            MoveDisplayWindowIfNecessary(movedVertically, movedHorizontally);
         }
 
         public void MoveDisplayWindowIfNecessary(bool movedVertically, bool movedHorizontally)
         {
             if (movedVertically)
             {
-                if (StartRow + _maxPerRow < _cursor.Row && StartRow + 1 < _chars.Count - 1)
+                if (StartRow + _maxPerRow - peekNum < _cursor.Row)
                 {
-                    StartRow++;
+                    if (StartRow + _maxPerRow + 1 == _cursor.Row)
+                        StartRow++;
+                    else
+                        StartRow = _cursor.Row;
                 }
                 if (StartRow > _cursor.Row && StartRow - 1 >= 0)
                 {
-                    StartRow--;
+                    if (StartRow - 1 == _cursor.Row)
+                        StartRow--;
+                    else
+                        StartRow = _cursor.Row;
                 }
             }
             if (movedHorizontally)
             {
-                if (StartCol + _maxPerColumn < _cursor.Column 
-                    && StartCol + 1 < _chars[_cursor.Row].Count - 1)
+                if (StartCol + _maxPerColumn - peekNum < _cursor.Column)
                 {
-                    StartCol++;
+                    if (StartCol + _maxPerColumn + 1 == _cursor.Column)
+                        StartCol++;
+                    else
+                        StartCol = _cursor.Column - _maxPerColumn;
+                    if (StartCol < 0)
+                        StartCol = 0;
                 }
                 if (StartCol > _cursor.Column && StartCol - 1 >= 0)
                 {
-                    StartCol--;
+                    if (StartCol - 1 == _cursor.Column)
+                        StartCol--;
+                    else
+                        StartCol = _cursor.Column;
                 }
-            }
-        }
-
-        private void MoveDown(bool movedVertically)
-        {
-            if (!movedVertically)
-                return;
-
-            //if (StartRow < _chars.Count - 1)
-            //{
-            //    StartRow += 1;
-            //    StartCol = _cursor.Column - _maxPerColumn;
-            //    StartCol = StartCol < 0 ? 0 : StartCol;
-            //}
-        }
-
-        private void MoveUp()
-        {
-            if (true)//_cursor.DisplayRow > 0)
-            {
-                //_cursor.DisplayRow--;
-                //_cursor.DisplayColumn = _cursor.Column;
-                //StartCol = _cursor.Column - _maxPerColumn;
-                //StartCol = StartCol < 0 ? 0 : StartCol;
-            }
-            else
-            {
-                if (StartRow > 0)
-                    StartRow -= 1;
             }
         }
     }
