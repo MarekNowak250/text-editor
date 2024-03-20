@@ -54,7 +54,7 @@ namespace TextEditor
             {
                 if (StartRow + _maxPerRow - peekNum < _cursor.Row)
                 {
-                    if (StartRow + _maxPerRow + 1 == _cursor.Row)
+                    if (StartRow + _maxPerRow - peekNum + 1 == _cursor.Row)
                         StartRow++;
                     else
                         StartRow = _cursor.Row;

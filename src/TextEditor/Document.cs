@@ -21,11 +21,12 @@ namespace TextEditor
                 new List<DocumentChar>()
             };
             _cursor = new('|', 0, 0);
-            var factory = new CharFactory(new System.Drawing.Font("Helvetica", 12F));
+            var factory = new CharFactory(new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular));
+
+            _rowChars = new FileLoader().LoadFile(@"C:\Users\Marek.Nowak\OneDrive - Sumitomo Wiring Systems\Desktop\log.txt");
             _canvas = canvas;
             _mover = new MoveOnDisplay(_cursor, _rowChars);
             _renderer = new(factory, _cursor, canvas, _rowChars, _mover);
-
             //var text = File.ReadAllLines("C:\\Users\\Marek.Nowak\\Desktop\\log.txt");
             //for (int i = 0; i < text.Length; i++)
             //{

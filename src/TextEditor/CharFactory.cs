@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -32,7 +33,7 @@ namespace TextEditor
         private System.Windows.Media.Imaging.BitmapImage DrawText(String text, Font font, Color textColor, Color backColor)
         {
             //first, create a dummy bitmap just to get a graphics object
-            Image img = new Bitmap(1, 1);
+            Bitmap img = new Bitmap(1, 1);
             Graphics drawing = Graphics.FromImage(img);
 
             //measure the string to see how big the image needs to be
@@ -52,6 +53,10 @@ namespace TextEditor
 
             //create a brush for the text
             Brush textBrush = new SolidBrush(textColor);
+
+            drawing.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            drawing.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            drawing.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             drawing.DrawString(text, font, textBrush, 0, 0);
 
