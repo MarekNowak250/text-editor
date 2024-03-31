@@ -51,46 +51,40 @@ namespace TextEditor
         public void MoveDisplayWindowIfNecessary(bool movedVertically, bool movedHorizontally)
         {
             if (movedVertically)
-                MoveVertically();
+            {
+                if (StartRow + _maxPerRow - peekNum < _cursor.Row)
+                {
+                    if (StartRow + _maxPerRow - peekNum + 1 == _cursor.Row)
+                        StartRow++;
+                    else
+                        StartRow = _cursor.Row;
+                }
+                if (StartRow > _cursor.Row && StartRow - 1 >= 0)
+                {
+                    if (StartRow - 1 == _cursor.Row)
+                        StartRow--;
+                    else
+                        StartRow = _cursor.Row;
+                }
+            }
             if (movedHorizontally)
-                MoveHorizontally();
-        }
-
-        private void MoveVertically()
-        {
-            if (StartRow + _maxPerRow - peekNum < _cursor.Row)
             {
-                if (StartRow + _maxPerRow + 1 == _cursor.Row)
-                    StartRow++;
-                else
-                    StartRow = _cursor.Row;
-            }
-            if (StartRow > _cursor.Row && StartRow - 1 >= 0)
-            {
-                if (StartRow - 1 == _cursor.Row)
-                    StartRow--;
-                else
-                    StartRow = _cursor.Row;
-            }
-        }
-
-        private void MoveHorizontally()
-        {
-            if (StartCol + _maxPerColumn - peekNum < _cursor.Column)
-            {
-                if (StartCol + _maxPerColumn == _cursor.Column)
-                    StartCol++;
-                else
-                    StartCol = _cursor.Column - _maxPerColumn;
-                if (StartCol < 0)
-                    StartCol = 0;
-            }
-            if (StartCol > _cursor.Column && StartCol - 1 >= 0)
-            {
-                if (StartCol - 1 == _cursor.Column)
-                    StartCol--;
-                else
-                    StartCol = _cursor.Column;
+                if (StartCol + _maxPerColumn - peekNum < _cursor.Column)
+                {
+                    if (StartCol + _maxPerColumn + 1 == _cursor.Column)
+                        StartCol++;
+                    else
+                        StartCol = _cursor.Column - _maxPerColumn;
+                    if (StartCol < 0)
+                        StartCol = 0;
+                }
+                if (StartCol > _cursor.Column && StartCol - 1 >= 0)
+                {
+                    if (StartCol - 1 == _cursor.Column)
+                        StartCol--;
+                    else
+                        StartCol = _cursor.Column;
+                }
             }
         }
     }
