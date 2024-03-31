@@ -20,43 +20,25 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
         }
 
         [Fact]
-        public void MoveRight_Should_do_nothing_When_there_is_no_next_row_or_next_char()
-        {
-            _sut.Move(Direction.Right, 10, 10);
-
-            _cursor.DisplayColumn.Should().Be(0);
-            _cursor.DisplayRow.Should().Be(0);
-        }
-
-        [Fact]
-        public void MoveRight_Should_change_cursor_column_When_there_is_char_next_to_it()
-        {
-            _chars[0].Add(new DocumentChar('1', 0, 1));
-            _sut.Move(Direction.Right, 10, 10);
-
-            _cursor.DisplayColumn.Should().Be(1);
-            _cursor.DisplayRow.Should().Be(0);
-        }
-
-        [Fact]
-        public void MoveRight_Should_move_to_next_row_When_there_is_no_next_char()
-        {
-            _chars.Add(new List<DocumentChar>() { new DocumentChar('1', 1, 0) });
-            _sut.Move(Direction.Right, 10, 10);
-
-            _cursor.DisplayColumn.Should().Be(0);
-            _cursor.DisplayRow.Should().Be(1);
-        }
-
-        [Fact]
         public void MoveRight_Should_move_display_window_When_it_exceded_max_display_chars_in_column()
         {
             _chars[0].Add(new DocumentChar('1', 0, 1));
             _sut.Move(Direction.Right, 1, 1);
 
-            _cursor.DisplayColumn.Should().Be(0);
-            _cursor.DisplayRow.Should().Be(0);
             _sut.StartCol.Should().Be(1);
+        }
+
+        [Fact]
+        public void MoveRight_Should_move_display_window_When_it_exceded_max_display_rows()
+        {
+            _chars[0].Add(new DocumentChar('1', 0, 1));
+            _chars.Add(new() { new DocumentChar('1', 1, 0), new DocumentChar('1', 1, 1), });
+            _cursor.SetColumn(1);
+
+            _sut.Move(Direction.Right, 1, 1);
+
+            _sut.StartRow.Should().Be(1);
+            _sut.StartCol.Should().Be(0);
         }
     }
 }

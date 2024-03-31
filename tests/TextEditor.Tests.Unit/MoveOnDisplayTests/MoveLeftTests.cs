@@ -25,48 +25,26 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
         }
 
         [Fact]
-        public void MoveLeft_Should_do_nothing_When_there_is_no_previous_row_or_previous_char()
-        {
-            _sut.Move(Direction.Left, 10, 10);
-
-            _cursor.DisplayColumn.Should().Be(0);
-            _cursor.DisplayRow.Should().Be(0);
-        }
-
-        [Fact]
-        public void MoveLeft_Should_change_cursor_column_When_there_is_previous_char()
+        public void MoveLeft_Should_move_display_window_When_moved_cursor_is_no_longer_visible()
         {
             _chars[0].Add(new DocumentChar('1', 0, 1));
-            _cursor.DisplayColumn = 1;
-            _sut.Move(Direction.Left, 10, 10);
-
-            _cursor.DisplayColumn.Should().Be(0);
-            _cursor.DisplayRow.Should().Be(0);
-        }
-
-
-        [Fact]
-        public void MoveLeft_Should_move_to_previous_row_When_there_is_previous_char()
-        {
-            _chars.Add(new List<DocumentChar>() { new DocumentChar('1', 1, 0) });
-            _cursor.SetRow(1);
-            _cursor.DisplayRow = 1;
-            _sut.Move(Direction.Left, 10, 10);
-
-            _cursor.DisplayColumn.Should().Be(0);
-            _cursor.DisplayRow.Should().Be(0);
-            _sut.StartCol.Should().Be(0);
-        }
-
-        [Fact]
-        public void MoveLeft_Should_does_not_change_displ_row_When_it_is_already_on_0()
-        {
-            _chars[0].Add(new DocumentChar('1', 0, 1));
+            _cursor.SetColumn(1);
             _sut.Move(Direction.Left, 1, 1);
 
-            _cursor.DisplayColumn.Should().Be(0);
-            _cursor.DisplayRow.Should().Be(0);
             _sut.StartCol.Should().Be(0);
+        }
+
+        [Fact]
+        public void MoveLeft_Should_move_display_window_When_cursor_moved_up_outside_of_displ_window()
+        {
+            _chars[0].Add(new DocumentChar('1', 0, 1));
+            _chars.Add(new() { new DocumentChar('1', 1, 0), new DocumentChar('1', 1, 1), });
+            _cursor.SetRow(1);
+
+            _sut.Move(Direction.Left, 1, 1);
+
+            _sut.StartRow.Should().Be(0);
+            _sut.StartCol.Should().Be(1);
         }
     }
 }
