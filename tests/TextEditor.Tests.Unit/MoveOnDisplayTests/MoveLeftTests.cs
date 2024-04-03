@@ -21,7 +21,7 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
                 new List<DocumentChar>(){new DocumentChar(',', 0, 0) }
             };
 
-            _sut = new(_cursor, _chars);
+            _sut = new(_cursor, _chars, 0);
         }
 
         [Fact]
@@ -45,6 +45,19 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
 
             _sut.StartRow.Should().Be(0);
             _sut.StartCol.Should().Be(1);
+        }
+
+        [Fact]
+        public void MoveLeft_Should_move_display_window_When_cursor_moved_up_outside_of_displ_window2()
+        {
+            _chars[0].Add(new DocumentChar('1', 0, 1));
+            _chars.Add(new() { new DocumentChar('1', 1, 0), new DocumentChar('1', 1, 1), });
+            _cursor.SetRow(1);
+
+            _sut.Move(Direction.Left, 1, 2);
+
+            _sut.StartRow.Should().Be(0);
+            _sut.StartCol.Should().Be(0);
         }
     }
 }

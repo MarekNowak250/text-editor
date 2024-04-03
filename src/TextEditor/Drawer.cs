@@ -57,51 +57,14 @@ namespace TextEditor
             var columnCount = maxColumnCount <= _chars[_cursor.Row].Count() ? maxColumnCount : _chars[_cursor.Row].Count();
             var charsToRender = _chars[_cursor.Row].Skip(startCol).Take(columnCount + 2).ToList();
 
-            if (charsToRender.Count == 0)
-            {
-                if (!_cursorVisible)
-                {
-                    _canvas.Children.Add(new Image()
-                    {
-                        Source = _charFactory.GetCharRender(_cursor.Character),
-                        Margin = new Thickness(x, y, 0, 0),
-                    });
-                }
-                return;
-            }
-
             _canvas.Children.RemoveAt(_cursor.Row);
             BitmapSource combinedLetters = null!;
-            var lineNum = $"{_cursor.Row}.";
-            lineNum = lineNum.PadRight(5, ' ');
-            foreach (var c in lineNum)
-            {
-                if (combinedLetters is null)
-                    combinedLetters = _charFactory.GetCharRender(c);
-                else
-                    combinedLetters = StitchBitmaps(combinedLetters, _charFactory.GetCharRender(c));
-            }
 
-            for (int j = 0; j < charsToRender.Count; j++)
-            {
-                BitmapSource? newCharRender = _charFactory
-                    .GetCharRender(charsToRender[j].Character);
+            if (_cursor.Column == 0 && _cursorVisible)
+                combinedLetters = _charFactory.GetCharRender(_cursor.Character);
 
-                if (_cursor.Column == (startCol + j) && _cursorVisible)
-                {
-                    combinedLetters = Overlay(combinedLetters, _charFactory
-                        .GetCharRender(_cursor.Character), (int)combinedLetters.Width);
-                }
+            combinedLetters = RenderRow(combinedLetters, charsToRender, _cursorVisible, startCol);
 
-                if (combinedLetters is null)
-                {
-                    combinedLetters = newCharRender;
-                }
-                else
-                {
-                    combinedLetters = StitchBitmaps(combinedLetters, newCharRender);
-                }
-            }
             _canvas.Children.Insert(_cursor.Row, new Image()
             {
                 Source = combinedLetters,
@@ -142,36 +105,9 @@ namespace TextEditor
                 var charsToRender = _chars[i].Skip(startCol).Take(columnCount + 2).ToList();
 
                 BitmapSource combinedLetters = null!;
-                var lineNum = $"{i}.";
-                lineNum = lineNum.PadRight(5, ' ');
-                foreach (var c in lineNum)
-                {
-                    if (combinedLetters is null)
-                        combinedLetters = _charFactory.GetCharRender(c);
-                    else
-                        combinedLetters = StitchBitmaps(combinedLetters, _charFactory.GetCharRender(c));
-                }
 
-                for (int j = 0; j < charsToRender.Count; j++)
-                {
-                    BitmapImage? newCharRender = _charFactory
-                        .GetCharRender(charsToRender[j].Character);
+                combinedLetters = RenderRow(combinedLetters, charsToRender, i == _cursor.Row, startCol);
 
-                    if (combinedLetters is null)
-                    {
-                        combinedLetters = newCharRender;
-                    }
-                    else
-                    {
-                        combinedLetters = StitchBitmaps(combinedLetters, newCharRender);
-                    }
-
-                    //if (_cursor.Column == (startCol + j) && _cursor.Row == i)
-                    //{
-                    //    combinedLetters = StitchBitmaps(combinedLetters, _charFactory
-                    //        .GetCharRender(_cursor.Character));
-                    //}
-                }
                 _canvas.Children.Add(new Image()
                 {
                     Source = combinedLetters,
@@ -181,7 +117,28 @@ namespace TextEditor
             }
         }
 
-        public BitmapSource StitchBitmaps(BitmapSource b1, BitmapSource b2)
+        BitmapSource RenderRow(BitmapSource combinedLetters, IList<DocumentChar> charsToRender,
+                            bool renderCursor = false, int startCol = -1)
+        {
+            for (int j = 0; j < charsToRender.Count; j++)
+            {
+                BitmapSource? newCharRender = _charFactory
+                    .GetCharRender(charsToRender[j].Character);
+
+                if (combinedLetters is null)
+                    combinedLetters = newCharRender;
+                else
+                    combinedLetters = StitchBitmaps(combinedLetters, newCharRender);
+
+                if (renderCursor && _cursor.Column - 1 == (startCol + j))
+                    combinedLetters = Overlay(combinedLetters, _charFactory
+                        .GetCharRender(_cursor.Character), (int)combinedLetters.Width);
+            }
+
+            return combinedLetters;
+        }
+
+        private BitmapSource StitchBitmaps(BitmapSource b1, BitmapSource b2)
         {
             var width = b1.PixelWidth + b2.PixelWidth;
             var height = Math.Max(b1.PixelHeight, b2.PixelHeight);
@@ -209,10 +166,10 @@ namespace TextEditor
         {
             var drawingVisual = new DrawingVisual();
             var drawingContext = drawingVisual.RenderOpen();
-            drawingContext.DrawImage(bmp1, new Rect(new Size(bmp1.Width +4, bmp1.Height+4)));
-            drawingContext.DrawImage(bmp2, new Rect(xSpace, 0, bmp2.Width, bmp2.Height));
+            drawingContext.DrawImage(bmp1, new Rect(new Size(bmp1.Width, bmp1.Height)));
+            drawingContext.DrawImage(bmp2, new Rect(xSpace - bmp2.Width * 0.5, 0, bmp2.Width, bmp2.Height));
             drawingContext.Close();
-            var mergedImage = new RenderTargetBitmap((int)bmp1.Width +4, (int)bmp1.Height +4, 96, 96, PixelFormats.Pbgra32);
+            var mergedImage = new RenderTargetBitmap((int)bmp1.Width, (int)bmp1.Height, 96, 96, PixelFormats.Pbgra32);
             mergedImage.Render(drawingVisual);
             return mergedImage;
         }

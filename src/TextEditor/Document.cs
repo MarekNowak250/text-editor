@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.IO;
+using System.Linq;
 using System.Windows.Controls;
 
 namespace TextEditor
@@ -23,23 +24,15 @@ namespace TextEditor
             _cursor = new('|', 0, 0);
             var factory = new CharFactory(new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular));
 
-            _rowChars = new FileLoader().LoadFile(@"C:\Users\Marek.Nowak\OneDrive - Sumitomo Wiring Systems\Desktop\log.txt");
+            //_rowChars = new FileLoader().LoadFile(@"C:\Users\Marek.Nowak\OneDrive - Sumitomo Wiring Systems\Desktop\log.txt");
             _canvas = canvas;
             _mover = new MoveOnDisplay(_cursor, _rowChars);
             _renderer = new(factory, _cursor, canvas, _rowChars, _mover);
-            //var text = File.ReadAllLines("C:\\Users\\Marek.Nowak\\Desktop\\log.txt");
-            //for (int i = 0; i < text.Length; i++)
-            //{
-            //    var line = new List<DocumentChar>();
-            //    foreach (var c in text[i])
-            //    {
-            //        line.Add(new DocumentChar(c, i, line.Count));
-            //    }
-            //    _rowChars.Add(line);
-            //}
         }
 
         public IList<List<DocumentChar>> GetChars => _rowChars.AsReadOnly();
+
+        object insertLock = new();
 
         public void InsertChar(char character)
         {
@@ -49,11 +42,15 @@ namespace TextEditor
             {
                 _rowChars[row].Add(new DocumentChar(character, row, 0));
                 _renderer.Rerender();
+                _cursor.SetColumn(column + 1);
                 return;
             }
 
-            _rowChars[row].Insert(column + 1, new DocumentChar(character, row, column + 1));
-            _cursor.SetColumn(column + 1);
+            lock (insertLock)
+            {
+                _rowChars[row].Insert(column, new DocumentChar(character, row, column));
+                _cursor.SetColumn(column + 1);
+            }
 
             var maxCount = _renderer.GetMaxRowColCount(_canvas);
             _mover.Move(maxCount.maxRowCount, maxCount.maxColumnCount, true, true);
@@ -62,8 +59,21 @@ namespace TextEditor
 
         public void AddLine()
         {
+            // need to move chars behind cursor
             var row = _cursor.Row + 1;
-            _rowChars.Add(new());
+            var charsToMove = _rowChars[row - 1].Skip(_cursor.Column).ToList();
+
+            foreach (var character in charsToMove)
+            {
+                _rowChars[row - 1].Remove(character);
+                character.Row++;
+            }
+
+            if (row < _rowChars.Count)
+                _rowChars.Insert(row, charsToMove);
+            else
+                _rowChars.Add(charsToMove);
+
             _cursor.SetRow(row);
             _cursor.SetColumn(0);
 
@@ -77,7 +87,16 @@ namespace TextEditor
             if (_rowChars.Count == 0 || _rowChars[_cursor.Row].Count == 0)
                 return;
 
-            _rowChars[_cursor.Row].RemoveAt(_cursor.Column);
+            if (_cursor.Column == 0)
+            {
+                _cursor.SetColumn(_rowChars[_cursor.Row - 1].Count);
+                _rowChars[_cursor.Row - 1].AddRange(_rowChars[_cursor.Row]);
+                _rowChars[_cursor.Row] = new();
+                MoveCursor(Direction.Up);
+                return;
+            }
+
+            _rowChars[_cursor.Row].RemoveAt(_cursor.Column - 1);
             MoveCursor(Direction.Left);
         }
 

@@ -35,9 +35,9 @@ namespace TextEditor
 
         private void MoveRight(IList<List<DocumentChar>> chars)
         {
-            if (chars[_cursor.Row].Count() - 1 > _cursor.Column)
+            if (_cursor.Column <=  chars[_cursor.Row].Count())
                 _cursor.SetColumn(_cursor.Column + 1);
-            else if (chars.Count() - 1 > _cursor.Row)
+            else if (_cursor.Row + 1 < chars.Count())
             {
                 _cursor.SetColumn(0);
                 _cursor.SetRow(_cursor.Row + 1);
@@ -51,7 +51,7 @@ namespace TextEditor
             else if (_cursor.Row > 0)
             {
                 _cursor.SetRow(_cursor.Row - 1);
-                _cursor.SetColumn(chars[_cursor.Row].Count() - 1);
+                _cursor.SetColumn(chars[_cursor.Row].Count());
             }
         }
 
@@ -62,8 +62,7 @@ namespace TextEditor
                 _cursor.SetRow(_cursor.Row + 1);
                 if (chars[_cursor.Row].Count() - 1 < _cursor.Column)
                 {
-                    var newCol = chars[_cursor.Row].Count() - 1 >= 0
-                        ? chars[_cursor.Row].Count() - 1 : 0;
+                    var newCol = chars[_cursor.Row].Count();
                     _cursor.SetColumn(newCol);
                 }
             }
@@ -74,10 +73,9 @@ namespace TextEditor
             if (_cursor.Row > 0)
             {
                 _cursor.SetRow(_cursor.Row - 1);
-                if (chars[_cursor.Row].Count() - 1 < _cursor.Column)
+                if (chars[_cursor.Row].Count() < _cursor.Column)
                 {
-                    var newCol = chars[_cursor.Row].Count() - 1 >= 0 
-                        ? chars[_cursor.Row].Count() - 1 : 0;
+                    var newCol = chars[_cursor.Row].Count();
                     _cursor.SetColumn(newCol);
                 }
 
