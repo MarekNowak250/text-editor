@@ -35,7 +35,7 @@ namespace TextEditor
 
         private void MoveRight(IList<List<DocumentChar>> chars)
         {
-            if (_cursor.Column <=  chars[_cursor.Row].Count())
+            if (_cursor.Column <  chars[_cursor.Row].Count())
                 _cursor.SetColumn(_cursor.Column + 1);
             else if (_cursor.Row + 1 < chars.Count())
             {

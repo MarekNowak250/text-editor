@@ -27,6 +27,7 @@ namespace TextEditor.Tests.Unit.MoveInMemoryTests
              (IList<List<DocumentChar>> chars, Cursor cursor, int expectedRow, 
                 int expectedColumn)
         {
+            _cursor.SetColumn(1);
             var sut = new MoveInMemory(cursor, chars);
             sut.MoveCursor(Direction.Down);
 

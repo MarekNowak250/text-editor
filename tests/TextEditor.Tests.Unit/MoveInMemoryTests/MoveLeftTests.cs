@@ -53,7 +53,7 @@ namespace TextEditor.Tests.Unit.MoveInMemoryTests
                     new List<DocumentChar>(){new DocumentChar(',', 1, 0), new DocumentChar(',', 1, 1), new DocumentChar(',', 0, 2) }
                    },
                 new Cursor('|', 1, 0),
-                0, 1
+                0, 2
             },
             new object[]
             {
@@ -63,7 +63,7 @@ namespace TextEditor.Tests.Unit.MoveInMemoryTests
                     new List<DocumentChar>(){new DocumentChar(',', 1, 0), new DocumentChar(',', 1, 1) }
                    },
                 new Cursor('|', 1, 0),
-                0, 2
+                0, 3
             }
         };
 
