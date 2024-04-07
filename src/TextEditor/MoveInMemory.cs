@@ -60,7 +60,7 @@ namespace TextEditor
             if (chars.Count() - 1 > _cursor.Row)
             {
                 _cursor.SetRow(_cursor.Row + 1);
-                if (chars[_cursor.Row].Count() - 1 < _cursor.Column)
+                if (chars[_cursor.Row].Count() < _cursor.Column)
                 {
                     var newCol = chars[_cursor.Row].Count();
                     _cursor.SetColumn(newCol);

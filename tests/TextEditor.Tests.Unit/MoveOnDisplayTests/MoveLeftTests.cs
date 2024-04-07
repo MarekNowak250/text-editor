@@ -21,7 +21,7 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
                 new List<DocumentChar>(){new DocumentChar(',', 0, 0) }
             };
 
-            _sut = new(_cursor, _chars, 0);
+            _sut = new(_cursor, 0);
         }
 
         [Fact]
@@ -29,7 +29,7 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
         {
             _chars[0].Add(new DocumentChar('1', 0, 1));
             _cursor.SetColumn(1);
-            _sut.Move(Direction.Left, 1, 1);
+            _sut.Move(1, 1, false, true);
 
             _sut.StartCol.Should().Be(0);
         }
@@ -41,7 +41,7 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
             _chars.Add(new() { new DocumentChar('1', 1, 0), new DocumentChar('1', 1, 1), });
             _cursor.SetRow(1);
 
-            _sut.Move(Direction.Left, 1, 1);
+            _sut.Move(1, 1, true, true);
 
             _sut.StartRow.Should().Be(0);
             _sut.StartCol.Should().Be(1);
@@ -54,7 +54,7 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
             _chars.Add(new() { new DocumentChar('1', 1, 0), new DocumentChar('1', 1, 1), });
             _cursor.SetRow(1);
 
-            _sut.Move(Direction.Left, 1, 2);
+            _sut.Move(1, 2, true, true);
 
             _sut.StartRow.Should().Be(0);
             _sut.StartCol.Should().Be(0);

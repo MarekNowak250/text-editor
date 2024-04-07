@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
 
@@ -14,6 +11,7 @@ namespace TextEditor
         private Renderer _renderer;
         private Canvas _canvas;
         private MoveOnDisplay _mover;
+        private readonly MoveInMemory _moveInMemory;
 
         public Document(Canvas canvas, IList<List<DocumentChar>> rowChars = null!)
         {
@@ -24,10 +22,19 @@ namespace TextEditor
             _cursor = new('|', 0, 0);
             var factory = new CharFactory(new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular));
 
-            //_rowChars = new FileLoader().LoadFile(@"C:\Users\Marek.Nowak\OneDrive - Sumitomo Wiring Systems\Desktop\log.txt");
+            _rowChars = new FileLoader().LoadFile(@"C:\Users\marek\Desktop\kmp\test.txt");
             _canvas = canvas;
-            _mover = new MoveOnDisplay(_cursor, _rowChars);
+            _mover = new MoveOnDisplay(_cursor);
+            _moveInMemory = new MoveInMemory(_cursor, _rowChars);
             _renderer = new(factory, _cursor, canvas, _rowChars, _mover);
+            _renderer.Rerender();
+
+            _canvas.SizeChanged += _canvas_SizeChanged;
+        }
+
+        private void _canvas_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        {
+            _renderer.Rerender();
         }
 
         public IList<List<DocumentChar>> GetChars => _rowChars.AsReadOnly();
@@ -59,7 +66,6 @@ namespace TextEditor
 
         public void AddLine()
         {
-            // need to move chars behind cursor
             var row = _cursor.Row + 1;
             var charsToMove = _rowChars[row - 1].Skip(_cursor.Column).ToList();
 
@@ -102,8 +108,15 @@ namespace TextEditor
 
         public void MoveCursor(Direction direction)
         {
+            var oldCol = _cursor.Column;
+            var oldRow = _cursor.Row;
+            _moveInMemory.MoveCursor(direction);
+            bool movedVertically = oldRow != _cursor.Row;
+            bool movedHorizontally = oldCol != _cursor.Column;
+
             var maxCount = _renderer.GetMaxRowColCount(_canvas);
-            _mover.Move(direction, maxCount.maxRowCount, maxCount.maxColumnCount);
+            _mover.Move(maxCount.maxRowCount, maxCount.maxColumnCount, 
+                movedVertically, movedHorizontally);
 
             _renderer.Rerender();
         }

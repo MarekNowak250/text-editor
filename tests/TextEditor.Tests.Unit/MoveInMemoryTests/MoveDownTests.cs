@@ -27,7 +27,6 @@ namespace TextEditor.Tests.Unit.MoveInMemoryTests
              (IList<List<DocumentChar>> chars, Cursor cursor, int expectedRow, 
                 int expectedColumn)
         {
-            _cursor.SetColumn(1);
             var sut = new MoveInMemory(cursor, chars);
             sut.MoveCursor(Direction.Down);
 
@@ -65,7 +64,7 @@ namespace TextEditor.Tests.Unit.MoveInMemoryTests
                 new List<List<DocumentChar>>
                     {
                     new List<DocumentChar>(){new DocumentChar(',', 0, 0), new DocumentChar(',', 0, 1), new DocumentChar(',', 0, 2)  },
-                    new List<DocumentChar>(){new DocumentChar(',', 1, 0), new DocumentChar(',', 1, 1) }
+                    new List<DocumentChar>(){new DocumentChar(',', 1, 0) }
                    },
                 new Cursor('|', 0, 2),
                 1, 1

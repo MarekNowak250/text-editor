@@ -20,7 +20,6 @@ namespace TextEditor
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _document = new Document(Main);
-            _document.MoveCursor(Direction.Up);
         }
 
         private void Window_PreviewTextInput(object sender, TextCompositionEventArgs e)

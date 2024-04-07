@@ -19,16 +19,17 @@ namespace TextEditor
         private readonly Cursor _cursor;
         private readonly Canvas _canvas;
         private readonly IList<List<DocumentChar>> _chars;
-        private readonly MoveOnDisplay _moveOnDisplay;
+        private readonly IDisplayWindow _displayWindow;
+        private bool _cursorVisible = true;
 
         public Renderer(CharFactory charFactory, Cursor cursor, Canvas canvas,
-            IList<List<DocumentChar>> chars, MoveOnDisplay moveOnDisplay)
+            IList<List<DocumentChar>> chars, IDisplayWindow displayWindow)
         {
             _charFactory = charFactory;
             _cursor = cursor;
             _canvas = canvas;
             _chars = chars;
-            _moveOnDisplay = moveOnDisplay;
+            _displayWindow = displayWindow;
             _ = BlinkCursorTimer();
         }
 
@@ -41,34 +42,33 @@ namespace TextEditor
             }
         }
 
-        private bool _cursorVisible = true;
-
         private void BlinkCursor()
         {
             _cursorVisible = !_cursorVisible;
+            BitmapSource combinedLetters = null!;
             var maxCount = GetMaxRowColCount(_canvas);
             int maxColumnCount = maxCount.maxColumnCount;
 
-            int startCol = _moveOnDisplay.StartCol;
+            int startCol = _displayWindow.GetStartCol();
             int y = _padding;
-
 
             double x = _padding;
             var columnCount = maxColumnCount <= _chars[_cursor.Row].Count() ? maxColumnCount : _chars[_cursor.Row].Count();
             var charsToRender = _chars[_cursor.Row].Skip(startCol).Take(columnCount + 2).ToList();
 
-            _canvas.Children.RemoveAt(_cursor.Row);
-            BitmapSource combinedLetters = null!;
+            if (_canvas.Children.Count > 0)
+                _canvas.Children.RemoveAt(_cursor.Row - _displayWindow.GetStartRow());
+
 
             if (_cursor.Column == 0 && _cursorVisible)
-                combinedLetters = _charFactory.GetCharRender(_cursor.Character);
+                combinedLetters = RenderCursorOnEmptyImage();
 
             combinedLetters = RenderRow(combinedLetters, charsToRender, _cursorVisible, startCol);
 
-            _canvas.Children.Insert(_cursor.Row, new Image()
+            _canvas.Children.Insert(_cursor.Row - _displayWindow.GetStartRow(), new Image()
             {
                 Source = combinedLetters,
-                Margin = new Thickness(x, y + (_cursor.Row * _spaceBetween), 0, 0),
+                Margin = new Thickness(x, y + ((_cursor.Row - _displayWindow.GetStartRow()) * _spaceBetween), 0, 0),
             });
         }
 
@@ -81,7 +81,7 @@ namespace TextEditor
 
         public (int maxRowCount, int maxColumnCount) GetMaxRowColCount(Canvas canvas)
         {
-            int maxColumnCount = (int)Math.Floor((canvas.ActualWidth - _padding) / _spaceBetween);
+            int maxColumnCount = (int)Math.Floor((canvas.ActualWidth - _padding) / (_spaceBetween *0.8));
             int maxRowCount = (int)Math.Floor((canvas.ActualHeight - _padding) / _spaceBetween);
 
             return (maxRowCount, maxColumnCount);
@@ -92,8 +92,8 @@ namespace TextEditor
         {
             _canvas.Children.Clear();
 
-            int startRow = _moveOnDisplay.StartRow;
-            int startCol = _moveOnDisplay.StartCol;
+            int startRow = _displayWindow.GetStartRow();
+            int startCol = _displayWindow.GetStartCol();
             int endRow = startRow + maxRowCount;
             endRow = endRow <= chars.Count() ? endRow : chars.Count();
             int y = _padding;
@@ -162,6 +162,18 @@ namespace TextEditor
             return wb;
         }
 
+        private BitmapSource RenderCursorOnEmptyImage()
+        {
+            PixelFormat pf = PixelFormats.Bgr32;
+            int rawStride = (1 * pf.BitsPerPixel + 7) / 8;
+            byte[] rawImage = new byte[rawStride * 20];
+            var i = BitmapSource.Create(1, 15, 96, 96, pf, null, rawImage, rawStride);
+            var combinedLetters = Overlay(i, _charFactory
+                .GetCharRender(_cursor.Character), 0);
+
+            return combinedLetters;
+        }
+
         private BitmapSource Overlay(BitmapSource bmp1, BitmapSource bmp2, int xSpace)
         {
             var drawingVisual = new DrawingVisual();
@@ -169,6 +181,7 @@ namespace TextEditor
             drawingContext.DrawImage(bmp1, new Rect(new Size(bmp1.Width, bmp1.Height)));
             drawingContext.DrawImage(bmp2, new Rect(xSpace - bmp2.Width * 0.5, 0, bmp2.Width, bmp2.Height));
             drawingContext.Close();
+
             var mergedImage = new RenderTargetBitmap((int)bmp1.Width, (int)bmp1.Height, 96, 96, PixelFormats.Pbgra32);
             mergedImage.Render(drawingVisual);
             return mergedImage;

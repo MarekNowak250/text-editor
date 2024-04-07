@@ -16,14 +16,14 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
                 new List<DocumentChar>(){new DocumentChar(',', 0, 0) }
             };
 
-            _sut = new(_cursor, _chars);
+            _sut = new(_cursor);
         }
 
         [Fact]
         public void MoveRight_Should_move_display_window_When_it_exceded_max_display_chars_in_column()
         {
             _chars[0].Add(new DocumentChar('1', 0, 1));
-            _sut.Move(Direction.Right, 1, 1);
+            _sut.Move(1, 1, false, false);
 
             _sut.StartCol.Should().Be(1);
         }
@@ -35,7 +35,7 @@ namespace TextEditor.Tests.Unit.MoveOnDisplayTests
             _chars.Add(new() { new DocumentChar('1', 1, 0), new DocumentChar('1', 1, 1), });
             _cursor.SetColumn(1);
 
-            _sut.Move(Direction.Right, 1, 1);
+            _sut.Move(1, 1, false, false);
 
             _sut.StartRow.Should().Be(1);
             _sut.StartCol.Should().Be(0);

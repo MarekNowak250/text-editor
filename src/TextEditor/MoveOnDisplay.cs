@@ -4,40 +4,31 @@ using System.Windows.Documents;
 
 namespace TextEditor
 {
-    internal class MoveOnDisplay
+    internal interface IDisplayWindow
     {
+        public int GetStartRow();
+        public int GetStartCol();
+    }
+
+    internal class MoveOnDisplay: IDisplayWindow
+    {
+        public int StartRow = 0;
+        public int StartCol = 0;
         private int _maxPerRow;
         private int _maxPerColumn;
         private readonly Cursor _cursor;
-        private readonly MoveInMemory _moveInMemory;
-        public int StartRow = 0;
-        public int StartCol = 0;
-
         private readonly int _peekNum;
 
         public MoveOnDisplay(Cursor cursor, 
-            IList<List<DocumentChar>> chars, 
             int peekNum =2)
         {
             _cursor = cursor;
-            _moveInMemory = new MoveInMemory(cursor, chars);
             _peekNum = peekNum;
         }
 
-        public void Move(Direction direction, int maxPerRow, int maxPerColumn)
-        {
-            _maxPerColumn = maxPerColumn;
-            _maxPerRow = maxPerRow;
+        public int GetStartRow() => StartRow;
+        public int GetStartCol() => StartCol;
 
-
-            var oldCol = _cursor.Column;
-            var oldRow = _cursor.Row;
-            _moveInMemory.MoveCursor(direction);
-            bool movedVertically = oldRow != _cursor.Row;
-            bool movedHorizontally = oldCol != _cursor.Column;
-
-            MoveDisplayWindowIfNecessary(movedVertically, movedHorizontally);
-        }
 
         public void Move(int maxPerRow, int maxPerColumn, 
             bool movedVertically, bool movedHorizontally)
