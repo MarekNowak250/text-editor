@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Win32;
 
 namespace TextEditor
 {
@@ -59,6 +60,32 @@ namespace TextEditor
                 default:
                     return;
             }
+        }
+
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new SaveFileDialog();
+
+            var result = dialog.ShowDialog();
+            if (!result.HasValue || !result.Value)
+                return;
+
+            _document.SaveFile(dialog.FileName);
+            title.Text = dialog.FileName;
+        }
+
+        private void Load_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog();
+            dialog.DefaultExt = "txt";
+
+            var result = dialog.ShowDialog();
+            if (!result.HasValue || !result.Value)
+                return;
+
+            _document.LoadFile(dialog.FileName);
+
+            title.Text = dialog.FileName;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace TextEditor
         private Renderer _renderer;
         private Canvas _canvas;
         private MoveOnDisplay _mover;
-        private readonly MoveInMemory _moveInMemory;
+        private MoveInMemory _moveInMemory;
 
         public Document(Canvas canvas, IList<List<DocumentChar>> rowChars = null!)
         {
@@ -20,16 +20,22 @@ namespace TextEditor
                 new List<DocumentChar>()
             };
             _cursor = new('|', 0, 0);
+            _canvas = canvas;
+
+            Init(_rowChars, _cursor);
+            _canvas.SizeChanged += _canvas_SizeChanged;
+        }
+
+        private void Init(IList<List<DocumentChar>> _rowChars, Cursor cursor)
+        {
             var factory = new CharFactory(new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular));
 
-            _rowChars = new FileLoader().LoadFile(@"C:\Users\marek\Desktop\kmp\test.txt");
-            _canvas = canvas;
             _mover = new MoveOnDisplay(_cursor);
             _moveInMemory = new MoveInMemory(_cursor, _rowChars);
-            _renderer = new(factory, _cursor, canvas, _rowChars, _mover);
+            if (_renderer != null)
+                _renderer.Dispose();
+            _renderer = new(factory, _cursor, _canvas, _rowChars, _mover);
             _renderer.Rerender();
-
-            _canvas.SizeChanged += _canvas_SizeChanged;
         }
 
         private void _canvas_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
@@ -40,6 +46,17 @@ namespace TextEditor
         public IList<List<DocumentChar>> GetChars => _rowChars.AsReadOnly();
 
         object insertLock = new();
+
+        public void SaveFile(string path)
+        {
+            new FileLoader().SaveFile(path, _rowChars);
+        }
+
+        public void LoadFile(string path)
+        {
+            _rowChars = new FileLoader().LoadFile(path);
+            Init(_rowChars, _cursor);
+        }
 
         public void InsertChar(char character)
         {

@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 
 namespace TextEditor
 {
-    internal class Renderer
+    internal class Renderer : IDisposable
     {
         int _padding = 12;
         int _spaceBetween = 20;
@@ -21,6 +21,7 @@ namespace TextEditor
         private readonly IList<List<DocumentChar>> _chars;
         private readonly IDisplayWindow _displayWindow;
         private bool _cursorVisible = true;
+        PeriodicTimer _blinkingTimer = null;
 
         public Renderer(CharFactory charFactory, Cursor cursor, Canvas canvas,
             IList<List<DocumentChar>> chars, IDisplayWindow displayWindow)
@@ -35,8 +36,8 @@ namespace TextEditor
 
         public async Task BlinkCursorTimer()
         {
-            var timer = new PeriodicTimer(TimeSpan.FromSeconds(0.5));
-            while (await timer.WaitForNextTickAsync(CancellationToken.None))
+            _blinkingTimer = new PeriodicTimer(TimeSpan.FromSeconds(0.5));
+            while (await _blinkingTimer.WaitForNextTickAsync(CancellationToken.None))
             {
                 BlinkCursor();
             }
@@ -185,6 +186,12 @@ namespace TextEditor
             var mergedImage = new RenderTargetBitmap((int)bmp1.Width, (int)bmp1.Height, 96, 96, PixelFormats.Pbgra32);
             mergedImage.Render(drawingVisual);
             return mergedImage;
+        }
+
+        public void Dispose()
+        {
+            if (_blinkingTimer != null)
+                _blinkingTimer.Dispose();
         }
     }
 }

@@ -27,5 +27,23 @@ namespace TextEditor
 
             return serializedText;
         }
+
+        public void SaveFile(string path, IList<List<DocumentChar>> rowChars)
+        {
+            var rows = new List<string>();
+            foreach(var line in rowChars)
+            {
+                var row = "";
+
+                foreach(var character in line)
+                {
+                    row += character.Character;
+                }
+
+                rows.Add(row);
+            }
+
+            File.WriteAllLines(path, rows);
+        }
     }
 }
