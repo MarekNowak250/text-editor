@@ -10,8 +10,7 @@ Hande quite big text files, by rendering only visible text.
 
 ## Why?
 
-It was developed as a learning project.
-
+Creating this simple text editor with limited functionality was mainly a learning project.
 ## Quick start
 
 Clone or download repository, build project.
