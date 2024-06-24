@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Controls;
 
@@ -6,46 +7,45 @@ namespace TextEditor
 {
     internal class Document
     {
+        public IList<List<DocumentChar>> GetChars => _rowChars.AsReadOnly();
         private IList<List<DocumentChar>> _rowChars;
+        private readonly ScrollBarDrawer _scrollBarDrawer;
         private Cursor _cursor;
-        private Renderer _renderer;
+        private DocumentDrawer _renderer;
         private Canvas _canvas;
         private MoveOnDisplay _mover;
         private MoveInMemory _moveInMemory;
+        object insertLock = new();
 
-        public Document(Canvas canvas, IList<List<DocumentChar>> rowChars = null!)
+        public Document(Canvas canvas, ScrollBarDrawer scrollBarDrawer, IList<List<DocumentChar>> rowChars = null!)
         {
             _rowChars = rowChars ?? new List<List<DocumentChar>>
             {
                 new List<DocumentChar>()
             };
-            _cursor = new('|', 0, 0);
+            _scrollBarDrawer = scrollBarDrawer;
             _canvas = canvas;
 
-            Init(_rowChars, _cursor);
+            Init(_rowChars);
             _canvas.SizeChanged += _canvas_SizeChanged;
         }
 
-        private void Init(IList<List<DocumentChar>> _rowChars, Cursor cursor)
+        private void Init(IList<List<DocumentChar>> _rowChars)
         {
-            var factory = new CharFactory(new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular));
-
+            _cursor = new('|', 0, 0);
             _mover = new MoveOnDisplay(_cursor);
             _moveInMemory = new MoveInMemory(_cursor, _rowChars);
             if (_renderer != null)
                 _renderer.Dispose();
-            _renderer = new(factory, _cursor, _canvas, _rowChars, _mover);
+            _renderer = new(_cursor, _canvas, _rowChars, _mover);
             _renderer.Rerender();
         }
 
         private void _canvas_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
         {
             _renderer.Rerender();
+            RerenderSideBar();
         }
-
-        public IList<List<DocumentChar>> GetChars => _rowChars.AsReadOnly();
-
-        object insertLock = new();
 
         public void SaveFile(string path)
         {
@@ -55,7 +55,8 @@ namespace TextEditor
         public void LoadFile(string path)
         {
             _rowChars = new FileLoader().LoadFile(path);
-            Init(_rowChars, _cursor);
+            Init(_rowChars);
+            RerenderSideBar();
         }
 
         public void InsertChar(char character)
@@ -103,18 +104,21 @@ namespace TextEditor
             var maxCount = _renderer.GetMaxRowColCount(_canvas);
             _mover.Move(maxCount.maxRowCount, maxCount.maxColumnCount, true, true);
             _renderer.Rerender();
+            RerenderSideBar();
         }
 
         public void DeleteChar()
         {
-            if (_rowChars.Count == 0 || _rowChars[_cursor.Row].Count == 0)
+            if (_rowChars.Count == 0 )
                 return;
 
             if (_cursor.Column == 0)
             {
+                if (_cursor.Row < 1)
+                    return;
                 _cursor.SetColumn(_rowChars[_cursor.Row - 1].Count);
                 _rowChars[_cursor.Row - 1].AddRange(_rowChars[_cursor.Row]);
-                _rowChars[_cursor.Row] = new();
+                _rowChars.RemoveAt(_cursor.Row);
                 MoveCursor(Direction.Up);
                 return;
             }
@@ -136,6 +140,25 @@ namespace TextEditor
                 movedVertically, movedHorizontally);
 
             _renderer.Rerender();
+            RerenderSideBar();
+        }
+
+        public void MoveDisplay(int percentage)
+        {
+            var nRow = (int)Math.Floor((double)_rowChars.Count * percentage / 100);
+            if (nRow < 0)
+                nRow = 0;
+            if(nRow > _rowChars.Count)
+                nRow = _rowChars.Count -1;
+            _mover.StartRow = nRow;
+
+            _renderer.Rerender();
+            RerenderSideBar();
+        }
+
+        private void RerenderSideBar()
+        {
+            _scrollBarDrawer.Rerender(_rowChars.Count, _cursor.Row, _mover.StartRow);
         }
     }
 }

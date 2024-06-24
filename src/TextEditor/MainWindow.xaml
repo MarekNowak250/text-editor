@@ -11,22 +11,33 @@
         PreviewKeyDown="Window_PreviewKeyDown">
     <Grid Focusable="False">
         <Grid.RowDefinitions>
-            <RowDefinition Height="0.1*"/>
+            <RowDefinition Height="36"/>
             <RowDefinition Height="0.9*"/>
         </Grid.RowDefinitions>
-        <Grid Background="#EEE" Height="30">
+        <Grid Background="#EEE">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="0.8*"/>
                 <ColumnDefinition Width="0.1*"/>
                 <ColumnDefinition Width="0.1*"/>
             </Grid.ColumnDefinitions>
             <TextBlock Grid.Column="0" Name="title" Text="file.txt" Padding="8"/>
-            <Button Grid.Column="1" Click="Save_Click" Focusable="False">Save</Button>
-            <Button Grid.Column="2" Click="Load_Click" Focusable="False">Load</Button>
+            <Button Grid.Column="1" Click="Save_Click" Margin="2" Focusable="False">Save</Button>
+            <Button Grid.Column="2" Click="Load_Click" Margin="2" Focusable="False">Load</Button>
         </Grid>
-        <Canvas x:Name="Main" Background="AliceBlue" Grid.Row="1">
+        <Grid Background="AliceBlue" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="24"/>
+            </Grid.ColumnDefinitions>
+            <Canvas x:Name="Main">
 
-        </Canvas>
+            </Canvas>
+            <Canvas x:Name="SideScroll" Background="Gainsboro" Grid.Column="1" PreviewMouseLeftButtonDown="SideScroll_PreviewMouseLeftButtonDown">
+                
+            </Canvas>
+        </Grid>
+            
+
     </Grid>
 
 </Window>
