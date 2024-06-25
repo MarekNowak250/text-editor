@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 
 namespace TextEditor
 {
-    internal class Renderer : IDisposable
+    internal class DocumentDrawer : IDisposable
     {
         int _padding = 12;
         int _spaceBetween = 20;
@@ -21,12 +21,13 @@ namespace TextEditor
         private readonly IList<List<DocumentChar>> _chars;
         private readonly IDisplayWindow _displayWindow;
         private bool _cursorVisible = true;
-        PeriodicTimer _blinkingTimer = null;
+        PeriodicTimer _blinkingTimer = null!;
+        private object _drawLock = new();
 
-        public Renderer(CharFactory charFactory, Cursor cursor, Canvas canvas,
-            IList<List<DocumentChar>> chars, IDisplayWindow displayWindow)
+        public DocumentDrawer(Cursor cursor, Canvas canvas,
+            IList<List<DocumentChar>> chars, IDisplayWindow displayWindow, CharFactory factory = null!)
         {
-            _charFactory = charFactory;
+            _charFactory = factory ?? new CharFactory(new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular));
             _cursor = cursor;
             _canvas = canvas;
             _chars = chars;
@@ -34,7 +35,23 @@ namespace TextEditor
             _ = BlinkCursorTimer();
         }
 
-        public async Task BlinkCursorTimer()
+        public void Rerender()
+        {
+            var maxCount = GetMaxRowColCount(_canvas);
+
+            // need to stop rerendering whole display window every time instead rerender row only when possible
+            Draw(_chars.AsReadOnly(), maxCount.maxColumnCount, maxCount.maxRowCount);
+        }
+
+        public (int maxRowCount, int maxColumnCount) GetMaxRowColCount(Canvas canvas)
+        {
+            int maxColumnCount = (int)Math.Floor((canvas.ActualWidth - _padding) / 14);
+            int maxRowCount = (int)Math.Floor((canvas.ActualHeight - _padding) / _spaceBetween);
+
+            return (maxRowCount, maxColumnCount);
+        }
+
+        private async Task BlinkCursorTimer()
         {
             _blinkingTimer = new PeriodicTimer(TimeSpan.FromSeconds(0.5));
             while (await _blinkingTimer.WaitForNextTickAsync(CancellationToken.None))
@@ -45,7 +62,6 @@ namespace TextEditor
 
         private void BlinkCursor()
         {
-            _cursorVisible = !_cursorVisible;
             BitmapSource combinedLetters = null!;
             var maxCount = GetMaxRowColCount(_canvas);
             int maxColumnCount = maxCount.maxColumnCount;
@@ -57,64 +73,56 @@ namespace TextEditor
             var columnCount = maxColumnCount <= _chars[_cursor.Row].Count() ? maxColumnCount : _chars[_cursor.Row].Count();
             var charsToRender = _chars[_cursor.Row].Skip(startCol).Take(columnCount + 2).ToList();
 
-            if (_canvas.Children.Count > 0)
-                _canvas.Children.RemoveAt(_cursor.Row - _displayWindow.GetStartRow());
-
-
-            if (_cursor.Column == 0 && _cursorVisible)
-                combinedLetters = RenderCursorOnEmptyImage();
-
-            combinedLetters = RenderRow(combinedLetters, charsToRender, _cursorVisible, startCol);
-
-            _canvas.Children.Insert(_cursor.Row - _displayWindow.GetStartRow(), new Image()
+            lock (_drawLock)
             {
-                Source = combinedLetters,
-                Margin = new Thickness(x, y + ((_cursor.Row - _displayWindow.GetStartRow()) * _spaceBetween), 0, 0),
-            });
-        }
+                _cursorVisible = !_cursorVisible;
+                if (_canvas.Children.Count > 0)
+                    _canvas.Children.RemoveAt(_cursor.Row - _displayWindow.GetStartRow());
 
-        public void Rerender()
-        {
-            var maxCount = GetMaxRowColCount(_canvas);
+                if (_cursor.Column == 0 && _cursorVisible)
+                    combinedLetters = RenderCursorOnEmptyImage();
 
-            Draw(_chars.AsReadOnly(), maxCount.maxColumnCount, maxCount.maxRowCount);
-        }
+                combinedLetters = RenderRow(combinedLetters, charsToRender, _cursorVisible, startCol);
 
-        public (int maxRowCount, int maxColumnCount) GetMaxRowColCount(Canvas canvas)
-        {
-            int maxColumnCount = (int)Math.Floor((canvas.ActualWidth - _padding) / (_spaceBetween *0.8));
-            int maxRowCount = (int)Math.Floor((canvas.ActualHeight - _padding) / _spaceBetween);
-
-            return (maxRowCount, maxColumnCount);
-        }
-
-        public void Draw(ReadOnlyCollection<List<DocumentChar>> chars,
-            int maxColumnCount, int maxRowCount)
-        {
-            _canvas.Children.Clear();
-
-            int startRow = _displayWindow.GetStartRow();
-            int startCol = _displayWindow.GetStartCol();
-            int endRow = startRow + maxRowCount;
-            endRow = endRow <= chars.Count() ? endRow : chars.Count();
-            int y = _padding;
-
-            for (int i = startRow; i < endRow; i++)
-            {
-                double x = _padding;
-                var columnCount = maxColumnCount <= _chars[i].Count() ? maxColumnCount : _chars[i].Count();
-                var charsToRender = _chars[i].Skip(startCol).Take(columnCount + 2).ToList();
-
-                BitmapSource combinedLetters = null!;
-
-                combinedLetters = RenderRow(combinedLetters, charsToRender, i == _cursor.Row, startCol);
-
-                _canvas.Children.Add(new Image()
+                _canvas.Children.Insert(_cursor.Row - _displayWindow.GetStartRow(), new Image()
                 {
                     Source = combinedLetters,
-                    Margin = new Thickness(x, y, 0, 0),
+                    Margin = new Thickness(x, y + ((_cursor.Row - _displayWindow.GetStartRow()) * _spaceBetween), 0, 0),
                 });
-                y += _spaceBetween;
+            }
+        }
+
+        private void Draw(ReadOnlyCollection<List<DocumentChar>> chars,
+            int maxColumnCount, int maxRowCount)
+        {
+            lock (_drawLock)
+            {
+                _canvas.Children.Clear();
+
+                int startRow = _displayWindow.GetStartRow();
+                int startCol = _displayWindow.GetStartCol();
+                int endRow = startRow + maxRowCount;
+                endRow = endRow <= chars.Count() ? endRow : chars.Count();
+                int y = _padding;
+
+                for (int i = startRow; i < endRow; i++)
+                {
+                    double x = _padding;
+                    var columnCount = maxColumnCount <= _chars[i].Count() ? maxColumnCount : _chars[i].Count();
+                    var charsToRender = _chars[i].Skip(startCol).Take(columnCount + 2).ToList();
+
+                    BitmapSource combinedLetters = null!;
+
+                    combinedLetters = RenderRow(combinedLetters, charsToRender, i == _cursor.Row, startCol);
+
+                    _canvas.Children.Add(new Image()
+                    {
+                        Source = combinedLetters,
+                        Margin = new Thickness(x, y, 0, 0),
+                    });
+                    y += _spaceBetween;
+                }
+
             }
         }
 
@@ -144,8 +152,8 @@ namespace TextEditor
             var width = b1.PixelWidth + b2.PixelWidth;
             var height = Math.Max(b1.PixelHeight, b2.PixelHeight);
             var wb = new WriteableBitmap(width, height, 96, 96, b1.Format, b1.Palette);
-            var stride1 = (b1.PixelWidth * b1.Format.BitsPerPixel + 7) / 8;
-            var stride2 = (b2.PixelWidth * b2.Format.BitsPerPixel + 7) / 8;
+            var stride1 = (b1.PixelWidth * b1.Format.BitsPerPixel) / 8;
+            var stride2 = (b2.PixelWidth * b2.Format.BitsPerPixel) / 8;
             var size = b1.PixelHeight * stride1;
             size = Math.Max(size, b2.PixelHeight * stride2);
 
@@ -166,7 +174,7 @@ namespace TextEditor
         private BitmapSource RenderCursorOnEmptyImage()
         {
             PixelFormat pf = PixelFormats.Bgr32;
-            int rawStride = (1 * pf.BitsPerPixel + 7) / 8;
+            int rawStride = (1 * pf.BitsPerPixel + 1) / 8;
             byte[] rawImage = new byte[rawStride * 20];
             var i = BitmapSource.Create(1, 15, 96, 96, pf, null, rawImage, rawStride);
             var combinedLetters = Overlay(i, _charFactory

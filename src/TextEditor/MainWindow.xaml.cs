@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
+using System.Windows.Controls;
 
 namespace TextEditor
 {
@@ -20,7 +20,7 @@ namespace TextEditor
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            _document = new Document(Main);
+            _document = new Document(Main, new ScrollBarDrawer(SideScroll));
         }
 
         private void Window_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -84,8 +84,23 @@ namespace TextEditor
                 return;
 
             _document.LoadFile(dialog.FileName);
-
             title.Text = dialog.FileName;
+        }
+
+        private void SideScroll_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var parent = (Canvas)sender;
+            Point mousePosition = e.GetPosition(parent);
+            _document.MoveDisplay((int)Math.Floor(mousePosition.Y / parent.ActualHeight * 100));
+        }
+
+        private void Main_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var parent = (Canvas)sender;
+            Point mousePosition = e.GetPosition(parent);
+            var yPercentage = (int)Math.Floor(mousePosition.Y / parent.ActualHeight * 100);
+            var xPercentage = (int)Math.Floor(mousePosition.X / parent.ActualWidth * 100);
+            _document.MoveCursor(xPercentage, yPercentage);
         }
     }
 }

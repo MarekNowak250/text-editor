@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace TextEditor
 {
@@ -13,9 +12,11 @@ namespace TextEditor
         private Dictionary<char, System.Windows.Media.Imaging.BitmapImage> _letters = new();
         private readonly Font _font;
 
-        public CharFactory(Font font)
+        public CharFactory(Font font, bool prerenderCommon = false)
         {
             _font = font;
+            if (prerenderCommon)
+                PrerenderCommonChars();
         }
 
         public System.Windows.Media.Imaging.BitmapImage GetCharRender(char character)
@@ -28,6 +29,18 @@ namespace TextEditor
             }
 
             return representation;
+        }
+
+        private void PrerenderCommonChars()
+        {
+            var commonChars = new char[] { 'a', 'b' ,'c', 'd', 'e','f','g','h','i','j','k', 
+                'l','m','n','o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 
+                '1', '2', '3', '4' ,'5','6','7','8','9','0', '-', '{','}' };
+
+            foreach (char c in commonChars)
+            {
+                _ = GetCharRender(c);
+            }
         }
 
         private System.Windows.Media.Imaging.BitmapImage DrawText(String text, Font font, Color textColor, Color backColor)

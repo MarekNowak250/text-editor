@@ -81,7 +81,11 @@ namespace TextEditor
                 if (StartCol - 1 == _cursor.Column)
                     StartCol--;
                 else
-                    StartCol = _cursor.Column;
+                {
+                    StartCol = _cursor.Column - _peekNum;
+                    if(StartCol < 0)
+                        StartCol = 0;
+                }
             }
         }
     }
