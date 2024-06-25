@@ -15,7 +15,8 @@ namespace TextEditor
         private Canvas _canvas;
         private MoveOnDisplay _mover;
         private MoveInMemory _moveInMemory;
-        object insertLock = new();
+        private object insertLock = new();
+        private CharFactory _charFactory = null;
 
         public Document(Canvas canvas, ScrollBarDrawer scrollBarDrawer, IList<List<DocumentChar>> rowChars = null!)
         {
@@ -25,6 +26,7 @@ namespace TextEditor
             };
             _scrollBarDrawer = scrollBarDrawer;
             _canvas = canvas;
+            _charFactory = new CharFactory(new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular));
 
             Init(_rowChars);
             _canvas.SizeChanged += _canvas_SizeChanged;
@@ -37,7 +39,7 @@ namespace TextEditor
             _moveInMemory = new MoveInMemory(_cursor, _rowChars);
             if (_renderer != null)
                 _renderer.Dispose();
-            _renderer = new(_cursor, _canvas, _rowChars, _mover);
+            _renderer = new(_cursor, _canvas, _rowChars, _mover, _charFactory);
             _renderer.Rerender();
         }
 
@@ -63,16 +65,16 @@ namespace TextEditor
         {
             var row = _cursor.Row;
             var column = _cursor.Column;
-            if (_rowChars[row].Count == 0)
-            {
-                _rowChars[row].Add(new DocumentChar(character, row, 0));
-                _renderer.Rerender();
-                _cursor.SetColumn(column + 1);
-                return;
-            }
-
             lock (insertLock)
             {
+                if (_rowChars[row].Count == 0)
+                {
+                    _rowChars[row].Add(new DocumentChar(character, row, 0));
+                    _renderer.Rerender();
+                    _cursor.SetColumn(column + 1);
+                    return;
+                }
+
                 _rowChars[row].Insert(column, new DocumentChar(character, row, column));
                 _cursor.SetColumn(column + 1);
             }
@@ -109,7 +111,7 @@ namespace TextEditor
 
         public void DeleteChar()
         {
-            if (_rowChars.Count == 0 )
+            if (_rowChars.Count == 0)
                 return;
 
             if (_cursor.Column == 0)
@@ -136,7 +138,7 @@ namespace TextEditor
             bool movedHorizontally = oldCol != _cursor.Column;
 
             var maxCount = _renderer.GetMaxRowColCount(_canvas);
-            _mover.Move(maxCount.maxRowCount, maxCount.maxColumnCount, 
+            _mover.Move(maxCount.maxRowCount, maxCount.maxColumnCount,
                 movedVertically, movedHorizontally);
 
             _renderer.Rerender();
@@ -148,29 +150,35 @@ namespace TextEditor
             var nRow = (int)Math.Floor((double)_rowChars.Count * percentage / 100);
             if (nRow < 0)
                 nRow = 0;
-            if(nRow > _rowChars.Count)
-                nRow = _rowChars.Count -1;
+            if (nRow > _rowChars.Count)
+                nRow = _rowChars.Count - 1;
             _mover.StartRow = nRow;
 
             _renderer.Rerender();
             RerenderSideBar();
         }
 
-        public void MoveCursor(int xPercentage, int yPercentage)
+        public void MoveCursor(double x, double yPercentage)
         {
             var maxCount = _renderer.GetMaxRowColCount(_canvas);
-            int maxX =  maxCount.maxColumnCount;
-            int maxY =  maxCount.maxRowCount;
+            int maxX = maxCount.maxColumnCount;
+            int maxY = maxCount.maxRowCount;
 
-            var col = (int)Math.Floor((double)maxX * xPercentage / 100);
-            var row = (int)Math.Floor((double)maxY * yPercentage / 100);
+            var row = (int)Math.Floor(maxY * yPercentage / 100);
 
-            int realCol = _mover.StartCol + col + 4;
             int realRow = _mover.StartRow + row;
-            if (_rowChars[realRow].Count < realCol)
-                realCol = _rowChars[realRow].Count;
-            
-            _cursor.SetColumn(realCol);
+            int col = 0;
+
+            double colWidth = 0;
+            foreach (var c in _rowChars[realRow].Skip(_mover.StartCol).Take(maxX))
+            {
+                colWidth += _charFactory.GetCharRender(c.Character).Width;
+                if (colWidth >= x)
+                    break;
+                col++;
+            }
+
+            _cursor.SetColumn(_mover.StartCol + col);
             _cursor.SetRow(realRow);
 
             _renderer.Rerender();

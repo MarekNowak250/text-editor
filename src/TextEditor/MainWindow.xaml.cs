@@ -98,9 +98,9 @@ namespace TextEditor
         {
             var parent = (Canvas)sender;
             Point mousePosition = e.GetPosition(parent);
-            var yPercentage = (int)Math.Floor(mousePosition.Y / parent.ActualHeight * 100);
-            var xPercentage = (int)Math.Floor(mousePosition.X / parent.ActualWidth * 100);
-            _document.MoveCursor(xPercentage, yPercentage);
+            var yPercentage = Math.Floor(mousePosition.Y / parent.ActualHeight * 100);
+            //var xPercentage = (int)Math.Floor(mousePosition.X / parent.ActualWidth * 100);
+            _document.MoveCursor(mousePosition.X, yPercentage);
         }
     }
 }
