@@ -6,7 +6,7 @@ Simple text editor written from scratch. Supports only keyboard, no mouse.
 
 Hande quite big text files, by rendering only visible text.
 
-![main_window_with_text](https://gitlab.com/Phoenix510/text-editor/-/wikis/uploads/66382011795acfb1b001b5010d73d490/image.png)
+![main_window_with_text](https://gitlab.com/Phoenix510/text-editor/-/wikis/uploads/103757c3cb8ff3907372761c8a528544/image.png)
 
 ## Why?
 
