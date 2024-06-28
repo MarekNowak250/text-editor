@@ -6,14 +6,16 @@ namespace TextEditor
 {
     internal interface IDisplayWindow
     {
-        public int GetStartRow();
-        public int GetStartCol();
+        public int StartRow { get; }
+        public int StartCol { get; set; }
+
+        void SetStartRow(int value, int rowsCount);
     }
 
     internal class MoveOnDisplay: IDisplayWindow
     {
-        public int StartRow = 0;
-        public int StartCol = 0;
+        public int StartRow { get; private set; } = 0;
+        public int StartCol { get; set; } = 0;
         private int _maxPerRow;
         private int _maxPerColumn;
         private readonly Cursor _cursor;
@@ -26,8 +28,14 @@ namespace TextEditor
             _peekNum = peekNum;
         }
 
-        public int GetStartRow() => StartRow;
-        public int GetStartCol() => StartCol;
+        public void SetStartRow(int value, int rowsCount)
+        {
+            StartRow = value;
+            if (StartRow < 0)
+                StartRow = 0;
+            else if (StartRow >= rowsCount)
+                StartRow = rowsCount - 1;
+        }
 
 
         public void Move(int maxPerRow, int maxPerColumn, 

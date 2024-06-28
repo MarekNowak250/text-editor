@@ -9,8 +9,9 @@ namespace TextEditor
 {
     internal class CharFactory
     {
+        public float FontSize => _font.Size;
         private Dictionary<char, System.Windows.Media.Imaging.BitmapImage> _letters = new();
-        private readonly Font _font;
+        private Font _font;
 
         public CharFactory(Font font, bool prerenderCommon = false)
         {
@@ -19,12 +20,15 @@ namespace TextEditor
                 PrerenderCommonChars();
         }
 
-        public System.Windows.Media.Imaging.BitmapImage GetCharRender(char character)
+        public System.Windows.Media.Imaging.BitmapImage GetCharRender(char character, Font font = null)
         {
+            if(font == null)
+                font = _font;
+
             System.Windows.Media.Imaging.BitmapImage representation = null;
             if(!_letters.TryGetValue(character, out representation))
             {
-                representation = DrawText(character.ToString(), _font, Color.Black, Color.Transparent);
+                representation = DrawText(character.ToString(), font, Color.Black, Color.Transparent);
                 _letters.Add(character, representation); 
             }
 
@@ -55,6 +59,12 @@ namespace TextEditor
             //free up the dummy image and old graphics object
             img.Dispose();
             drawing.Dispose();
+
+            if (textSize.Width < 1)
+                textSize.Width = 1;
+
+            if (textSize.Height < 1)
+                textSize.Height = 1;
 
             //create a new image of the right size
             img = new Bitmap((int)textSize.Width, (int)textSize.Height);

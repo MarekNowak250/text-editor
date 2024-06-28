@@ -12,6 +12,7 @@ namespace TextEditor
     public partial class MainWindow : Window
     {
         private Document _document;
+        private bool _scrolling = false;
 
         public MainWindow()
         {
@@ -27,7 +28,7 @@ namespace TextEditor
         {
             foreach (var c in e.Text)
             {
-                if (c == '\b' || c== '\r')
+                if (c == '\b' || c == '\r')
                     return;
 
                 _document.InsertChar(c);
@@ -89,6 +90,7 @@ namespace TextEditor
 
         private void SideScroll_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            _scrolling = true;
             var parent = (Canvas)sender;
             Point mousePosition = e.GetPosition(parent);
             _document.MoveDisplay((int)Math.Floor(mousePosition.Y / parent.ActualHeight * 100));
@@ -101,6 +103,34 @@ namespace TextEditor
             var yPercentage = Math.Floor(mousePosition.Y / parent.ActualHeight * 100);
             //var xPercentage = (int)Math.Floor(mousePosition.X / parent.ActualWidth * 100);
             _document.MoveCursor(mousePosition.X, yPercentage);
+        }
+
+        private void SideScroll_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            _scrolling = false;
+        }
+
+        private void SideScroll_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_scrolling)
+                return;
+
+            var parent = (Canvas)sender;
+            Point mousePosition = e.GetPosition(parent);
+            _document.MoveDisplay((int)Math.Floor(mousePosition.Y / parent.ActualHeight * 100));
+        }
+
+        private void SideScroll_MouseLeave(object sender, MouseEventArgs e)
+        {
+            _scrolling = false;
+        }
+
+        private void Grid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+                _document.Zoom(e.Delta);
+            else
+                _document.MoveDisplayDelta(e.Delta);
         }
     }
 }

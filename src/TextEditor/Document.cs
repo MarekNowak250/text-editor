@@ -20,13 +20,15 @@ namespace TextEditor
 
         public Document(Canvas canvas, ScrollBarDrawer scrollBarDrawer, IList<List<DocumentChar>> rowChars = null!)
         {
+            // TODO need to replace vertical cursor moves by calcs
+            // to make sure it end up around same width insead of same col num
             _rowChars = rowChars ?? new List<List<DocumentChar>>
             {
                 new List<DocumentChar>()
             };
             _scrollBarDrawer = scrollBarDrawer;
             _canvas = canvas;
-            _charFactory = new CharFactory(new System.Drawing.Font("Courier New", 12F, System.Drawing.FontStyle.Regular));
+            _charFactory = new CharFactory(new System.Drawing.Font("Courier New", 12F));
 
             Init(_rowChars);
             _canvas.SizeChanged += _canvas_SizeChanged;
@@ -34,17 +36,35 @@ namespace TextEditor
 
         private void Init(IList<List<DocumentChar>> _rowChars)
         {
-            _cursor = new('|', 0, 0);
+            _cursor = new('|', 0, 0, _charFactory.FontSize);
             _mover = new MoveOnDisplay(_cursor);
             _moveInMemory = new MoveInMemory(_cursor, _rowChars);
             if (_renderer != null)
                 _renderer.Dispose();
             _renderer = new(_cursor, _canvas, _rowChars, _mover, _charFactory);
             _renderer.Rerender();
+            RerenderSideBar();
         }
 
         private void _canvas_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
         {
+            _renderer.Rerender();
+            RerenderSideBar();
+        }
+
+        public void Zoom(int delta)
+        {
+            float newFontSize = _charFactory.FontSize;
+            if (delta < 0)
+                newFontSize -= 1.5F;
+            else
+                newFontSize += 1.5F;
+
+            if (newFontSize < 1)
+                newFontSize = 1;
+
+            ChangeFontSize(newFontSize);
+
             _renderer.Rerender();
             RerenderSideBar();
         }
@@ -137,11 +157,22 @@ namespace TextEditor
             bool movedVertically = oldRow != _cursor.Row;
             bool movedHorizontally = oldCol != _cursor.Column;
 
+            int oldStartRow = _mover.StartRow;
+            int oldStartCol = _mover.StartCol;
+
             var maxCount = _renderer.GetMaxRowColCount(_canvas);
             _mover.Move(maxCount.maxRowCount, maxCount.maxColumnCount,
                 movedVertically, movedHorizontally);
 
-            _renderer.Rerender();
+            // there is no need to rerender whole display window if it doesn't move just refresh those modified rows
+            if (oldStartRow == _mover.StartRow && oldStartCol == _mover.StartCol) 
+            {
+                if(movedVertically)
+                    _renderer.RerenderRow(oldRow);
+                _renderer.RerenderRow(_cursor.Row);
+            }
+            else
+                _renderer.Rerender();
             RerenderSideBar();
         }
 
@@ -152,7 +183,18 @@ namespace TextEditor
                 nRow = 0;
             if (nRow > _rowChars.Count)
                 nRow = _rowChars.Count - 1;
-            _mover.StartRow = nRow;
+            _mover.SetStartRow(nRow, _rowChars.Count);
+
+            _renderer.Rerender();
+            RerenderSideBar();
+        }
+
+        public void MoveDisplayDelta(int delta)
+        {
+            if (delta < 0)
+                _mover.SetStartRow(_mover.StartRow + 1, _rowChars.Count);
+            else
+                _mover.SetStartRow(_mover.StartRow - 1, _rowChars.Count);
 
             _renderer.Rerender();
             RerenderSideBar();
@@ -167,6 +209,8 @@ namespace TextEditor
             var row = (int)Math.Floor(maxY * yPercentage / 100);
 
             int realRow = _mover.StartRow + row;
+            if (realRow > _rowChars.Count)
+                return;
             int col = 0;
 
             double colWidth = 0;
@@ -183,6 +227,14 @@ namespace TextEditor
 
             _renderer.Rerender();
             RerenderSideBar();
+        }
+
+        private void ChangeFontSize(float newSize)
+        {
+            _charFactory = new CharFactory(new System.Drawing.Font("Courier New", newSize));
+            _renderer.ChangeCharFactory(_charFactory);
+            _cursor.ChangeFontSize(newSize);
+            _renderer.Rerender();
         }
 
         private void RerenderSideBar()
