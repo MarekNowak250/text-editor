@@ -2,7 +2,7 @@
 
 ## Description
 
-Simple text editor written from scratch. Supports only keyboard, no mouse. 
+Simple text editor written from scratch. Supports keyboard and mouse.
 
 Hande quite big text files, by rendering only visible text.
 
