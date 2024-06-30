@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -10,7 +10,7 @@ namespace TextEditor
     internal class CharFactory
     {
         public float FontSize => _font.Size;
-        private Dictionary<char, System.Windows.Media.Imaging.BitmapImage> _letters = new();
+        private ConcurrentDictionary<char, System.Windows.Media.Imaging.BitmapImage> _letters = new();
         private Font _font;
 
         public CharFactory(Font font, bool prerenderCommon = false)
@@ -25,11 +25,12 @@ namespace TextEditor
             if(font == null)
                 font = _font;
 
-            System.Windows.Media.Imaging.BitmapImage representation = null;
-            if(!_letters.TryGetValue(character, out representation))
+            System.Windows.Media.Imaging.BitmapImage representation = null!;
+            if(!_letters.TryGetValue(character, out representation!))
             {
                 representation = DrawText(character.ToString(), font, Color.Black, Color.Transparent);
-                _letters.Add(character, representation); 
+                representation.Freeze();
+                _letters.TryAdd(character, representation); 
             }
 
             return representation;

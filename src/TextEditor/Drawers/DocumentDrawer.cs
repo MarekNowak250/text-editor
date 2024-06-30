@@ -35,7 +35,7 @@ namespace TextEditor
             _ = BlinkCursorTimer();
         }
 
-        public void ChangeCharFactory(CharFactory factory) 
+        public void ChangeCharFactory(CharFactory factory)
         {
             if (factory == null)
                 return;
@@ -65,7 +65,7 @@ namespace TextEditor
 
         private double GetMaxHeight(Canvas canvas)
         {
-            return canvas.ActualHeight - _padding *2;
+            return canvas.ActualHeight - _padding * 2;
         }
 
         public double GetMaxWidth(Canvas canvas)
@@ -144,26 +144,37 @@ namespace TextEditor
 
                 int startRow = _displayWindow.StartRow;
                 int startCol = _displayWindow.StartCol;
-                float y = _padding;
                 double x = _padding;
+                int maxRows = (int)Math.Floor((_canvas.ActualHeight - _padding) / _spaceBetween) + startRow;
+                maxRows = maxRows >= chars.Count ? chars.Count - 1 : maxRows;
+                
+                var tasks = new Task[maxRows - startRow];
+                Dictionary<int, BitmapSource> rowImagePairs = new Dictionary<int, BitmapSource>();
 
-                for (int i = startRow; i < _chars.Count; i++)
+                for (int i = startRow; i < maxRows; i++)
                 {
-                    if (y >= maxHeight)
-                        break;
-                    BitmapSource combinedLetters = null!;
-
-                    combinedLetters = RenderRow(combinedLetters, _chars[i], maxWidth, i == _cursor.Row, startCol);
-
-                    _canvas.Children.Add(new Image()
+                    int j = i;
+                    // concurrently draw rows
+                    tasks[j - startRow] = (Task.Run(() =>
                     {
-                        Source = combinedLetters,
-                        Margin = new Thickness(x, y, 0, 0),
-                    });
+                        BitmapSource combinedLetters = null!;
 
-                    y += _spaceBetween;
+                        combinedLetters = RenderRow(combinedLetters, chars[j], maxWidth, j == _cursor.Row, startCol);
+                        combinedLetters?.Freeze();
+                        rowImagePairs.TryAdd(j -startRow, combinedLetters);
+                    }));
                 }
 
+                Task.WaitAll(tasks.ToArray());
+                foreach(var data in rowImagePairs.OrderBy(x=> x.Key)) 
+                {
+                    float y = _padding + data.Key * _spaceBetween;
+                    _canvas.Children.Add(new Image()
+                    {
+                        Source = data.Value,
+                        Margin = new Thickness(x, y, 0, 0),
+                    });
+                }
             }
         }
 
