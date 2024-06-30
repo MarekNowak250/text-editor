@@ -123,7 +123,7 @@ namespace TextEditor
 
             lock (_drawLock)
             {
-                if (_canvas.Children.Count > 0)
+                if (_canvas.Children.Count > 0 )
                     _canvas.Children.RemoveAt(row - _displayWindow.StartRow);
 
                 combinedLetters = RenderRow(combinedLetters, _chars[row], maxWidth, row == _cursor.Row, startCol);
@@ -146,7 +146,7 @@ namespace TextEditor
                 int startCol = _displayWindow.StartCol;
                 double x = _padding;
                 int maxRows = (int)Math.Floor((_canvas.ActualHeight - _padding) / _spaceBetween) + startRow;
-                maxRows = maxRows >= chars.Count ? chars.Count - 1 : maxRows;
+                maxRows = maxRows >= chars.Count ? chars.Count : maxRows;
                 
                 var tasks = new Task[maxRows - startRow];
                 Dictionary<int, BitmapSource> rowImagePairs = new Dictionary<int, BitmapSource>();
