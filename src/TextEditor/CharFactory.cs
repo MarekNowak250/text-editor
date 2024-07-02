@@ -7,7 +7,7 @@ using System.IO;
 
 namespace TextEditor
 {
-    internal class CharFactory
+    public class CharFactory
     {
         public float FontSize => _font.Size;
         private ConcurrentDictionary<char, System.Windows.Media.Imaging.BitmapImage> _letters = new();

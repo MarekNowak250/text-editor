@@ -8,7 +8,8 @@
         Loaded="Window_Loaded"
         Height="450" Width="800" 
         PreviewTextInput="Window_PreviewTextInput" 
-        PreviewKeyDown="Window_PreviewKeyDown">
+        PreviewKeyDown="Window_PreviewKeyDown"
+        WindowStartupLocation="CenterOwner">
     <Grid Focusable="False">
         <Grid.RowDefinitions>
             <RowDefinition Height="36"/>
@@ -37,11 +38,8 @@
                     MouseLeave="SideScroll_MouseLeave"
                     PreviewMouseLeftButtonDown="SideScroll_PreviewMouseLeftButtonDown" 
                     PreviewMouseLeftButtonUp="SideScroll_PreviewMouseLeftButtonUp">
-                
+
             </Canvas>
         </Grid>
-            
-
     </Grid>
-
 </Window>

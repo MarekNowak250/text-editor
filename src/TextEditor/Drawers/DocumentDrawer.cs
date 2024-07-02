@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -149,7 +150,7 @@ namespace TextEditor
                 maxRows = maxRows >= chars.Count ? chars.Count : maxRows;
                 
                 var tasks = new Task[maxRows - startRow];
-                Dictionary<int, BitmapSource> rowImagePairs = new Dictionary<int, BitmapSource>();
+                ConcurrentDictionary<int, BitmapSource> rowImagePairs = new ConcurrentDictionary<int, BitmapSource>();
 
                 for (int i = startRow; i < maxRows; i++)
                 {
@@ -161,7 +162,7 @@ namespace TextEditor
 
                         combinedLetters = RenderRow(combinedLetters, chars[j], maxWidth, j == _cursor.Row, startCol);
                         combinedLetters?.Freeze();
-                        rowImagePairs.TryAdd(j -startRow, combinedLetters);
+                        rowImagePairs.TryAdd(j - startRow, combinedLetters);
                     }));
                 }
 

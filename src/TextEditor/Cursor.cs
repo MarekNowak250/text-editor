@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Windows.Media.Imaging;
 
 namespace TextEditor
@@ -7,11 +8,15 @@ namespace TextEditor
     {
         public void SetColumn(int newCol)
         {
+            if (newCol < 0)
+                throw new ArgumentException($"Column cannot be less then 0. Got {newCol}");
             Column = newCol;
         }
 
         public void SetRow(int newRow)
         {
+            if (newRow < 0)
+                throw new ArgumentException($"Row cannot be less then 0. Got {newRow}");
             Row = newRow;
         }
 
