@@ -12,7 +12,7 @@
         WindowStartupLocation="CenterOwner">
     <Grid Focusable="False">
         <Grid.RowDefinitions>
-            <RowDefinition Height="36"/>
+            <RowDefinition Height="32"/>
             <RowDefinition Height="0.9*"/>
         </Grid.RowDefinitions>
         <Grid Background="#EEE" Panel.ZIndex="1">
@@ -30,16 +30,30 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="24"/>
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="24"/>
+            </Grid.RowDefinitions>
             <Canvas x:Name="Main" PreviewMouseLeftButtonDown="Main_PreviewMouseLeftButtonDown"  Background="AliceBlue">
 
             </Canvas>
-            <Canvas x:Name="SideScroll" Background="Gainsboro" Grid.Column="1" 
+            <Canvas x:Name="SideScroll" Background="Gainsboro" Grid.Column="1" Grid.RowSpan="2"
                     PreviewMouseMove="SideScroll_PreviewMouseMove"
                     MouseLeave="SideScroll_MouseLeave"
                     PreviewMouseLeftButtonDown="SideScroll_PreviewMouseLeftButtonDown" 
                     PreviewMouseLeftButtonUp="SideScroll_PreviewMouseLeftButtonUp">
 
             </Canvas>
+            <Grid Background="SkyBlue" Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="textInfo" Margin="8,0,0,0" VerticalAlignment="Center" Grid.Column="0" />
+                <TextBlock x:Name="fontSizeInfo" Margin="0,0,8,0" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Column="1"/>
+
+            </Grid>
         </Grid>
     </Grid>
 </Window>

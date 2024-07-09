@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace TextEditor
         float _spaceBetween => _charFactory.FontSize + 8;
         private readonly Cursor _cursor;
         private readonly Canvas _canvas;
-        private readonly IList<List<DocumentChar>> _chars;
+        private IList<List<DocumentChar>> _chars;
         private readonly IDisplayWindow _displayWindow;
         private bool _cursorVisible = true;
         PeriodicTimer _blinkingTimer = null!;
@@ -43,9 +42,11 @@ namespace TextEditor
             _charFactory = factory;
         }
 
-        public void Rerender()
+        public void Rerender(IList<List<DocumentChar>> chars = null)
         {
-            Draw(_chars.AsReadOnly(), GetMaxHeight(_canvas), GetMaxWidth(_canvas));
+            if( chars != null)
+                _chars = chars;
+            Draw(_chars, GetMaxHeight(_canvas), GetMaxWidth(_canvas));
         }
 
         public void RerenderRow(int row)
@@ -137,7 +138,7 @@ namespace TextEditor
             }
         }
 
-        private void Draw(ReadOnlyCollection<List<DocumentChar>> chars, double maxHeight, double maxWidth)
+        private void Draw(IList<List<DocumentChar>> chars, double maxHeight, double maxWidth)
         {
             lock (_drawLock)
             {

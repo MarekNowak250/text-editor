@@ -22,6 +22,8 @@ namespace TextEditor
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _document = new Document(Main, new ScrollBarDrawer(SideScroll));
+            fontSizeInfo.Text = $"Font size: {_document.FontSize}px";
+            RefreshTextInfo();
         }
 
         private void Window_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -33,10 +35,22 @@ namespace TextEditor
 
                 _document.InsertChar(c);
             }
+            RefreshTextInfo();
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (e.Key == Key.Z)
+                    _document.Undo();
+                if(e.Key == Key.Y)
+                    _document.Redo();
+
+                RefreshTextInfo();
+                return;
+            }
+
             switch (e.Key)
             {
                 case Key.Back:
@@ -47,20 +61,21 @@ namespace TextEditor
                     _document.AddLine();
                     break;
                 case Key.Left:
-                    _document.MoveCursor(Direction.Left);
+                    _document.MoveCursor(Direction.Left, false);
                     break;
                 case Key.Up:
-                    _document.MoveCursor(Direction.Up);
+                    _document.MoveCursor(Direction.Up, false);
                     break;
                 case Key.Right:
-                    _document.MoveCursor(Direction.Right);
+                    _document.MoveCursor(Direction.Right, false);
                     break;
                 case Key.Down:
-                    _document.MoveCursor(Direction.Down);
+                    _document.MoveCursor(Direction.Down, false);
                     break;
                 default:
                     return;
             }
+            RefreshTextInfo();
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -86,6 +101,7 @@ namespace TextEditor
 
             _document.LoadFile(dialog.FileName);
             title.Text = dialog.FileName;
+            RefreshTextInfo();
         }
 
         private void SideScroll_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -128,9 +144,17 @@ namespace TextEditor
         private void Grid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (Keyboard.Modifiers == ModifierKeys.Control)
-                _document.Zoom(e.Delta);
+            {
+                var fontSize = _document.Zoom(e.Delta);
+                fontSizeInfo.Text = $"Font size: {fontSize}px";
+            }
             else
                 _document.MoveDisplayDelta(e.Delta);
+        }
+
+        private void RefreshTextInfo()
+        {
+            textInfo.Text = $"{_document.RowCount} rows | {_document.CharCount} chars";
         }
     }
 }

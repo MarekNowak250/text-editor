@@ -81,6 +81,8 @@ namespace TextEditor
             drawing.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
             drawing.InterpolationMode = InterpolationMode.HighQualityBicubic;
             drawing.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            drawing.SmoothingMode = SmoothingMode.HighQuality;
+            drawing.CompositingQuality = CompositingQuality.HighQuality;
 
             drawing.DrawString(text, font, textBrush, 0, 0);
 

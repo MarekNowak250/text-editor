@@ -33,7 +33,14 @@ namespace TextEditor
         public int GetNewColumn(CursorState cursorState, int startCol)
         {
             if (!cursorState.MovedVertically())
-                return cursorState.CurrentColumn; 
+                return cursorState.CurrentColumn;
+
+            if (cursorState.LastDirection == Direction.Left && cursorState.PreviousColumn == 0)
+                return _chars[cursorState.CurrentRow].Count;
+
+            if (cursorState.LastDirection == Direction.Right && cursorState.PreviousColumn 
+                    >= _chars[cursorState.PreviousRow].Count)
+                return 0;
 
             double previousWidth = 0;
             foreach (var c in _chars[cursorState.PreviousRow].Skip(startCol).Take(cursorState.PreviousColumn - startCol)) 
