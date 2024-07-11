@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TextEditor.Enums;
 
 namespace TextEditor.Tests.Unit.MoveInMemoryTests
 {
@@ -46,7 +47,7 @@ namespace TextEditor.Tests.Unit.MoveInMemoryTests
                     new List<DocumentChar>(){new DocumentChar(',', 0, 0), new DocumentChar(',', 0, 1) },
                     new List<DocumentChar>(){new DocumentChar(',', 1, 0), new DocumentChar(',', 1, 1), new DocumentChar(',', 0, 2) }
                    },
-                new Cursor('|', 0, 0),
+                new Cursor('|', 0, 0, 12),
                 1, 0
             },
             new object[]
@@ -56,7 +57,7 @@ namespace TextEditor.Tests.Unit.MoveInMemoryTests
                     new List<DocumentChar>(){new DocumentChar(',', 0, 0), new DocumentChar(',', 0, 1), new DocumentChar(',', 0, 2)  },
                     new List<DocumentChar>(){new DocumentChar(',', 1, 0), new DocumentChar(',', 1, 1) }
                    },
-                new Cursor('|', 0, 1),
+                new Cursor('|', 0, 1, 12),
                 1, 1
             },
                         new object[]
@@ -66,7 +67,7 @@ namespace TextEditor.Tests.Unit.MoveInMemoryTests
                     new List<DocumentChar>(){new DocumentChar(',', 0, 0), new DocumentChar(',', 0, 1), new DocumentChar(',', 0, 2)  },
                     new List<DocumentChar>(){new DocumentChar(',', 1, 0) }
                    },
-                new Cursor('|', 0, 2),
+                new Cursor('|', 0, 2, 12),
                 1, 1
             }
         };

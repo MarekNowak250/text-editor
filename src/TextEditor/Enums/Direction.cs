@@ -1,10 +1,10 @@
-﻿namespace TextEditor
+﻿namespace TextEditor.Enums
 {
     public enum Direction
     {
         Right,
-        Left, 
-        Up, 
+        Left,
+        Up,
         Down,
         None
     }

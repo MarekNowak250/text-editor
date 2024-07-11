@@ -8,7 +8,7 @@
 
         public MoveInMemoryTest()
         {
-            _cursor = new Cursor('|', 0, 0);
+            _cursor = new Cursor('|', 0, 0, 12);
             _chars = new List<List<DocumentChar>>
             {
                 new List<DocumentChar>(){new DocumentChar(',', 0, 0) }

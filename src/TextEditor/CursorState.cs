@@ -1,4 +1,6 @@
-﻿namespace TextEditor
+﻿using TextEditor.Enums;
+
+namespace TextEditor
 {
     public struct CursorState
     {

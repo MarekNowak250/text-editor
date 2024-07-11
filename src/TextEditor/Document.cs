@@ -1,89 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
 using System.Windows.Controls;
+using TextEditor.Enums;
 
 namespace TextEditor
 {
-    internal class SnapshotsManager
-    {
-        private readonly int maxUndoSnapshots;
-        private readonly int maxRedoSnapshots;
-        private List<Snapshot> undoSnapshots;
-        private List<Snapshot> redoSnapshots;
-
-        public SnapshotsManager(int maxUndoSnapshots, int maxRedoSnapshots) 
-        {
-            undoSnapshots = new();
-            redoSnapshots = new();
-            this.maxUndoSnapshots = maxUndoSnapshots;
-            this.maxRedoSnapshots = maxRedoSnapshots;
-        }
-
-        public void AddUndo(Snapshot snapshot, bool clear = true)
-        {
-            if(clear)
-                redoSnapshots.Clear();
-
-            if (undoSnapshots.Count >= maxUndoSnapshots)
-                undoSnapshots.RemoveAt(0);
-            undoSnapshots.Add(snapshot);
-        }
-
-        public void AddRedo(Snapshot snapshot)
-        {
-            if (redoSnapshots.Count >= maxRedoSnapshots)
-                redoSnapshots.RemoveAt(0);
-            redoSnapshots.Add(snapshot);
-        }
-
-        public Snapshot? PopUndo()
-        {
-            if (undoSnapshots.Count < 1)
-                return null;
-
-            int index = undoSnapshots.Count - 1;
-            var snapshot = undoSnapshots[index];
-            undoSnapshots.RemoveAt(index);
-
-            AddRedo(snapshot);
-
-            return snapshot;
-        }
-
-        public Snapshot? PopRedo()
-        {
-            if (redoSnapshots.Count < 1)
-                return null;
-
-            int index = redoSnapshots.Count - 1;
-            var snapshot = redoSnapshots[index];
-            redoSnapshots.RemoveAt(index);
-
-            AddUndo(snapshot, false);
-
-            return snapshot;
-        }
-    }
-
-    internal class Snapshot
-    {
-        public readonly int CursorRow;
-        public readonly int CursorColumn;
-        public readonly IList<List<DocumentChar>> RowChars;
-        public readonly int CharacterCount;
-
-        public Snapshot(int cursorRow, int cursorColumn, IList<List<DocumentChar>> rowChars, int characterCount) 
-        {
-            CursorRow = cursorRow;
-            CursorColumn = cursorColumn;
-            RowChars = rowChars;
-            CharacterCount = characterCount;
-        }
-
-    }
-
     internal class Document
     {
         public float FontSize => _charFactory.FontSize;
@@ -96,7 +18,7 @@ namespace TextEditor
         private Canvas _canvas;
         private MoveOnDisplay _mover;
         private MoveInMemory _moveInMemory;
-        private CharFactory _charFactory = null;
+        private CharFactory _charFactory = null!;
         private ColumnUtils _columnUtils;
         private DocumentEditor _editor;
 

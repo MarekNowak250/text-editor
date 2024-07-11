@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Input;
 using Microsoft.Win32;
 using System.Windows.Controls;
+using TextEditor.Enums;
+using System.Threading.Tasks;
 
 namespace TextEditor
 {
@@ -78,7 +80,7 @@ namespace TextEditor
             RefreshTextInfo();
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private async void Save_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new SaveFileDialog();
 
@@ -88,12 +90,16 @@ namespace TextEditor
 
             _document.SaveFile(dialog.FileName);
             title.Text = dialog.FileName;
+
+            textInfo.Text = $"Document saved to {dialog.FileName}";
+            await Task.Delay(4000);
+            RefreshTextInfo();
         }
 
         private void Load_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog();
-            dialog.DefaultExt = "txt";
+            dialog.Filter = "All files|*.*|Text files|*.txt|Json files| *.json";
 
             var result = dialog.ShowDialog();
             if (!result.HasValue || !result.Value)
