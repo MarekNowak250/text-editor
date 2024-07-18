@@ -61,11 +61,15 @@ namespace TextEditor
             img.Dispose();
             drawing.Dispose();
 
+            //temoprary fix for too much space between chars
+            textSize.Width -= 1.2F;
+
             if (textSize.Width < 1)
                 textSize.Width = 1;
 
             if (textSize.Height < 1)
                 textSize.Height = 1;
+
 
             //create a new image of the right size
             img = new Bitmap((int)textSize.Width, (int)textSize.Height);
@@ -94,7 +98,7 @@ namespace TextEditor
             return ImageToBitmapImage(img);
         }
 
-        private System.Windows.Media.Imaging.BitmapImage ImageToBitmapImage(System.Drawing.Image image)
+        private System.Windows.Media.Imaging.BitmapImage ImageToBitmapImage(Image image)
         {
             using (var ms = new MemoryStream())
             {

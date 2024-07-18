@@ -5,6 +5,9 @@ using Microsoft.Win32;
 using System.Windows.Controls;
 using TextEditor.Enums;
 using System.Threading.Tasks;
+using System.Windows.Documents;
+using System.Globalization;
+using TextEditor.Controls;
 
 namespace TextEditor
 {
@@ -14,7 +17,6 @@ namespace TextEditor
     public partial class MainWindow : Window
     {
         private Document _document;
-        private bool _scrolling = false;
 
         public MainWindow()
         {
@@ -23,9 +25,19 @@ namespace TextEditor
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            _document = new Document(Main, new ScrollBarDrawer(SideScroll));
+            var scrollBar = new SideScroll();
+            SideScrollContainer.Children.Add(scrollBar);
+            scrollBar.Scrolled += ScrollBar_Scrolled;
+            
+            _document = new Document(Main, new ScrollBarDrawer(scrollBar.SideScrollCanvas));
             fontSizeInfo.Text = $"Font size: {_document.FontSize}px";
+
             RefreshTextInfo();
+        }
+
+        private void ScrollBar_Scrolled(int scrolledToPercentage)
+        {
+            _document.MoveDisplay(scrolledToPercentage);
         }
 
         private void Window_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -91,7 +103,9 @@ namespace TextEditor
             _document.SaveFile(dialog.FileName);
             title.Text = dialog.FileName;
 
-            textInfo.Text = $"Document saved to {dialog.FileName}";
+            textInfo.Text = string.Empty;
+            textInfo.Inlines.Add("Document saved to ");
+            textInfo.Inlines.Add(new Run(dialog.FileName) { FontWeight = FontWeights.Bold });
             await Task.Delay(4000);
             RefreshTextInfo();
         }
@@ -110,14 +124,6 @@ namespace TextEditor
             RefreshTextInfo();
         }
 
-        private void SideScroll_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            _scrolling = true;
-            var parent = (Canvas)sender;
-            Point mousePosition = e.GetPosition(parent);
-            _document.MoveDisplay((int)Math.Floor(mousePosition.Y / parent.ActualHeight * 100));
-        }
-
         private void Main_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var parent = (Canvas)sender;
@@ -125,26 +131,6 @@ namespace TextEditor
             var yPercentage = Math.Floor(mousePosition.Y / parent.ActualHeight * 100);
             //var xPercentage = (int)Math.Floor(mousePosition.X / parent.ActualWidth * 100);
             _document.MoveCursor(mousePosition.X, yPercentage);
-        }
-
-        private void SideScroll_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            _scrolling = false;
-        }
-
-        private void SideScroll_PreviewMouseMove(object sender, MouseEventArgs e)
-        {
-            if (!_scrolling)
-                return;
-
-            var parent = (Canvas)sender;
-            Point mousePosition = e.GetPosition(parent);
-            _document.MoveDisplay((int)Math.Floor(mousePosition.Y / parent.ActualHeight * 100));
-        }
-
-        private void SideScroll_MouseLeave(object sender, MouseEventArgs e)
-        {
-            _scrolling = false;
         }
 
         private void Grid_PreviewMouseWheel(object sender, MouseWheelEventArgs e)

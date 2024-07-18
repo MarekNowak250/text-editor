@@ -44,7 +44,7 @@ namespace TextEditor
 
         public void Rerender(IList<List<DocumentChar>> chars = null)
         {
-            if( chars != null)
+            if (chars != null)
                 _chars = chars;
             Draw(_chars, GetMaxHeight(_canvas), GetMaxWidth(_canvas));
         }
@@ -59,7 +59,7 @@ namespace TextEditor
 
         public (int maxRowCount, int maxColumnCount) GetMaxRowColCount(Canvas canvas)
         {
-            int maxColumnCount = (int)Math.Floor((canvas.ActualWidth - _padding) / (_spaceBetween * 0.8));
+            int maxColumnCount = (int)Math.Floor((canvas.ActualWidth - _padding) / (_spaceBetween - 8));
             int maxRowCount = (int)Math.Floor((canvas.ActualHeight - _padding) / _spaceBetween);
 
             return (maxRowCount, maxColumnCount);
@@ -90,25 +90,30 @@ namespace TextEditor
 
             int startCol = _displayWindow.StartCol;
             var maxWidth = GetMaxWidth(_canvas);
+            (int maxRows, _) = GetMaxRowColCount(_canvas); ;
 
             int y = _padding;
             double x = _padding;
 
             lock (_drawLock)
             {
+                int renderRow = _cursor.Row - _displayWindow.StartRow;
+                if (renderRow < 0 || renderRow >= maxRows)
+                    return;
+
                 _cursorVisible = !_cursorVisible;
-                if (_canvas.Children.Count > 0)
-                    _canvas.Children.RemoveAt(_cursor.Row - _displayWindow.StartRow);
+                if (_canvas.Children.Count > 0 && renderRow < _chars.Count)
+                    _canvas.Children.RemoveAt(renderRow);
 
                 if (_cursor.Column == 0 && _cursorVisible)
                     combinedLetters = RenderCursorOnEmptyImage();
 
                 combinedLetters = RenderRow(combinedLetters, _chars[_cursor.Row], maxWidth, _cursorVisible, startCol);
 
-                _canvas.Children.Insert(_cursor.Row - _displayWindow.StartRow, new Image()
+                _canvas.Children.Insert(renderRow, new Image()
                 {
                     Source = combinedLetters,
-                    Margin = new Thickness(x, y + ((_cursor.Row - _displayWindow.StartRow) * _spaceBetween), 0, 0),
+                    Margin = new Thickness(x, y + ((renderRow) * _spaceBetween), 0, 0),
                 });
             }
         }
@@ -125,7 +130,7 @@ namespace TextEditor
 
             lock (_drawLock)
             {
-                if (_canvas.Children.Count > 0 )
+                if (_canvas.Children.Count > 0)
                     _canvas.Children.RemoveAt(row - _displayWindow.StartRow);
 
                 combinedLetters = RenderRow(combinedLetters, _chars[row], maxWidth, row == _cursor.Row, startCol);
@@ -149,7 +154,7 @@ namespace TextEditor
                 double x = _padding;
                 int maxRows = (int)Math.Floor((_canvas.ActualHeight - _padding) / _spaceBetween) + startRow;
                 maxRows = maxRows >= chars.Count ? chars.Count : maxRows;
-                
+
                 var tasks = new Task[maxRows - startRow];
                 ConcurrentDictionary<int, BitmapSource> rowImagePairs = new ConcurrentDictionary<int, BitmapSource>();
 
@@ -163,12 +168,12 @@ namespace TextEditor
 
                         combinedLetters = RenderRow(combinedLetters, chars[j], maxWidth, j == _cursor.Row, startCol);
                         combinedLetters?.Freeze();
-                        rowImagePairs.TryAdd(j - startRow, combinedLetters);
+                        rowImagePairs.TryAdd(j - startRow, combinedLetters!);
                     }));
                 }
 
                 Task.WaitAll(tasks.ToArray());
-                foreach(var data in rowImagePairs.OrderBy(x=> x.Key)) 
+                foreach (var data in rowImagePairs.OrderBy(x => x.Key))
                 {
                     float y = _padding + data.Key * _spaceBetween;
                     _canvas.Children.Add(new Image()

@@ -34,16 +34,14 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="24"/>
             </Grid.RowDefinitions>
-            <Canvas x:Name="Main" PreviewMouseLeftButtonDown="Main_PreviewMouseLeftButtonDown"  Background="AliceBlue">
+            <Canvas x:Name="Main" PreviewMouseLeftButtonDown="Main_PreviewMouseLeftButtonDown" Background="AliceBlue">
 
             </Canvas>
-            <Canvas x:Name="SideScroll" Background="Gainsboro" Grid.Column="1" Grid.RowSpan="2"
-                    PreviewMouseMove="SideScroll_PreviewMouseMove"
-                    MouseLeave="SideScroll_MouseLeave"
-                    PreviewMouseLeftButtonDown="SideScroll_PreviewMouseLeftButtonDown" 
-                    PreviewMouseLeftButtonUp="SideScroll_PreviewMouseLeftButtonUp">
+            
+            <Grid x:Name="SideScrollContainer" Grid.Column="1" Grid.RowSpan="2">
+                
+            </Grid>
 
-            </Canvas>
             <Grid Background="SkyBlue" Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
