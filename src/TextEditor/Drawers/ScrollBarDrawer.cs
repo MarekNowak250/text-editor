@@ -5,15 +5,19 @@ using System.Windows.Media;
 
 namespace TextEditor
 {
-    internal class ScrollBarDrawer
+    internal interface IScrollBarDrawer 
+    {
+        void Init(Canvas canvas);
+    }
+
+    internal class ScrollBarDrawer : IScrollBarDrawer
     {
         int _padding = 12;
         int _spaceBetween = 20;
-        private readonly Canvas _canvas;
+        private Canvas _canvas;
 
-        public ScrollBarDrawer(Canvas canvas)
+        public ScrollBarDrawer()
         {
-            _canvas = canvas;
         }
 
         public void Rerender(int charLines, int cursorRow, int startDisplayRow)
@@ -33,6 +37,9 @@ namespace TextEditor
             var positionPercentage = GetPositionPercentage(charLines, startRow);
 
             var width = _canvas.ActualWidth;
+
+            if(width < 1)
+                return new System.Windows.Shapes.Rectangle(); 
             var height = Math.Floor(showPercentage * _canvas.ActualHeight / 100);
             if (height < 1)
                 height = 1;
@@ -57,7 +64,7 @@ namespace TextEditor
             var cursorPercentage = GetPositionPercentage(charLines, cursorRow);
             var cursorRect = new System.Windows.Shapes.Rectangle();
             var y = Math.Floor(cursorPercentage * _canvas.ActualHeight / 100 - 2);
-            cursorRect.Margin = new Thickness(0, y, 0, 0);
+            cursorRect.Margin = new Thickness(0, y < 1? 1: 0, 0, 0);
             cursorRect.Height = 2;
             cursorRect.Width = _canvas.ActualWidth;
             cursorRect.Fill = new SolidColorBrush(Colors.Gray);
@@ -74,6 +81,11 @@ namespace TextEditor
         private double GetPositionPercentage(int charLines, int cursorRow)
         {
             return Math.Floor((double)cursorRow / charLines * 100);
+        }
+
+        public void Init(Canvas canvas)
+        {
+            _canvas = canvas;
         }
     }
 }

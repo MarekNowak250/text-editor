@@ -25,11 +25,12 @@ namespace TextEditor
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var scrollBar = new SideScroll();
+            var sideScrollDrawer = new ScrollBarDrawer();
+            var scrollBar = new SideScroll(sideScrollDrawer);
             SideScrollContainer.Children.Add(scrollBar);
             scrollBar.Scrolled += ScrollBar_Scrolled;
             
-            _document = new Document(Main, new ScrollBarDrawer(scrollBar.SideScrollCanvas));
+            _document = new Document(Main, sideScrollDrawer);
             fontSizeInfo.Text = $"Font size: {_document.FontSize}px";
 
             RefreshTextInfo();

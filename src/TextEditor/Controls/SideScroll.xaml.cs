@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -20,13 +21,15 @@ namespace TextEditor.Controls
     /// </summary>
     public partial class SideScroll : UserControl
     {
+        internal readonly ScrollBarDrawer Drawer;
         public event Action<int> Scrolled;
 
         private bool _scrolling = false;
 
-        public SideScroll()
+        internal SideScroll(IScrollBarDrawer drawer)
         {
             InitializeComponent();
+            drawer.Init(SideScrollCanvas);
         }
 
         private void SideScrollCanvas_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
